@@ -9,7 +9,8 @@ from django.utils.text import slugify
 import json
 from django.utils.safestring import mark_safe
 from . import utils
-from datetime import date, datetime
+import datetime
+from datetime import date
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
@@ -161,20 +162,44 @@ class UserAdmin(admin.ModelAdmin):
             imported_count = 0
 
             # Identify model fields so we can split row dicts
-            user_fields = {f.name for f in User._meta.get_fields() if f.concrete and not f.many_to_many and not f.one_to_many}
-            profile_fields = {f.name for f in Profile._meta.get_fields() if f.concrete and f.name != "user"}
+            user_fields = {
+                f.name for f in User._meta.get_fields()
+                if f.concrete and not f.many_to_many and not f.one_to_many
+            }
+            profile_fields = {
+                f.name for f in Profile._meta.get_fields()
+                if f.concrete and f.name != "user"
+            }
+
+            # Detect date fields in Profile
+            profile_date_fields = {
+                f.name for f in Profile._meta.get_fields() if isinstance(f, models.DateField)
+            }
 
             for idx, row in enumerate(rows):
                 try:
+                    # --- Normalize keys ---
+                    row = {k.strip(): (v.strip() if isinstance(v, str) else v) for k, v in row.items()}
+
                     # --- Split into User vs Profile ---
-                    user_data = {k: v for k, v in row.items() if k in user_fields}
-                    profile_data = {k: v for k, v in row.items() if k in profile_fields}
+                    user_data = {k: v for k, v in row.items() if k in user_fields and v}
+                    profile_data = {k: v for k, v in row.items() if k in profile_fields and v}
+
+                    # --- Handle Date Fields (dd-mm-yyyy → yyyy-mm-dd) ---
+                    for date_field in profile_date_fields:
+                        if profile_data.get(date_field):
+                            try:
+                                profile_data[date_field] = datetime.datetime.strptime(
+                                    profile_data[date_field], "%d-%m-%Y"
+                                ).date()
+                            except ValueError:
+                                profile_data.pop(date_field, None)
 
                     # --- Handle username ---
                     username = (
-                        user_data.get("username")
-                        or utils.generate_unique_username(row.get("first_name"), row.get("last_name"))
-                        or f"user_{slugify(row.get('full_name', 'anon'))}_{idx}"
+                            user_data.get("username")
+                            or utils.generate_unique_username(row.get("first_name"), row.get("last_name"))
+                            or f"user_{slugify(row.get('full_name', 'anon'))}_{idx}"
                     )
 
                     user, created = User.objects.get_or_create(username=username, defaults=user_data)
@@ -183,7 +208,6 @@ class UserAdmin(admin.ModelAdmin):
                         user.set_password("Welcome123")
                         user.save()
                     else:
-                        # Update existing user if needed
                         for k, v in user_data.items():
                             setattr(user, k, v)
                         user.save()
@@ -196,8 +220,7 @@ class UserAdmin(admin.ModelAdmin):
                 except Exception as e:
                     print("⚠️ Import error:", e)
                     continue
-
-            self.message_user(request, f"✅ {imported_count} users imported successfully (with profiles).")
+            self.message_user(request, f"✅ {imported_count} {'user' if imported_count == 1 else 'users'} imported successfully (with profiles).")
             return redirect("..")
 
         # First-time GET request
