@@ -31,6 +31,7 @@ ALLOWED_HOSTS = [".onrender.com", "atutvidhan.com", "localhost", '127.0.0.1']
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -41,7 +42,7 @@ INSTALLED_APPS = [
     'user.apps.UserConfig',
     'siteadmin.apps.SiteadminConfig',
     'search.apps.SearchConfig',
-    'channels',
+    'plans.apps.PlansConfig',
 
 ]
 
@@ -165,3 +166,13 @@ DATE_FORMAT = 'd-m-Y'
 
 DEFAULT_FEMALE_FALLBACK_URL = "https://krtiayhjqgtsruzboour.supabase.co/storage/v1/object/public/media/profile_images/femaledefault.png"
 DEFAULT_MALE_FALLBACK_URL = "https://krtiayhjqgtsruzboour.supabase.co/storage/v1/object/public/media/profile_images/maledefault.png"
+
+
+ASGI_APPLICATION = "main.asgi.application"
+
+# In-memory channel layer (for dev)
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
