@@ -115,8 +115,6 @@ def faq(request):
     return render(request, 'user/brandfiles/faq.html')
 
 def custom_404_view(request, exception=None):
-    return redirect('login')
-
-
-def auth_fallback(request):
+    if "siteadmin" in request.path:
+        return redirect('siteadmin')
     return redirect('login')

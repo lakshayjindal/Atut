@@ -22,12 +22,10 @@ from django.conf import settings
 from django.http import HttpResponseNotFound
 from django.urls import path, re_path
 
-
-
 urlpatterns = [
-                  path('siteadmin/', admin.site.urls),
-                  # path('admin/', include('siteadmin.urls')),
+                  path('siteadmin/', admin.site.urls, name='siteadmin'),
                   path('', views.entry_user, name='homepage'),
+                  path('customMadeAdmin/', include('siteadmin.urls')),
                   path('auth/', include('user.urls')),
                   path('user_dashboard', views.redirect_user_dashboard, name="user_dashboard"),
                   path('chat/', include("connect.urls")),
@@ -38,7 +36,7 @@ urlpatterns = [
                   path('about/', views.about, name='about'),
                   path('contact/', views.contact, name='contact'),
                   path('faq/', views.faq, name='help'),
-                  re_path(r'.*/auth/.*', views.auth_fallback),
-                  re_path(r'^.*$', views.custom_404_view),
+                  # re_path(r'.*/auth/.*', views.auth_fallback),
+                  # re_path(r'^.*$', views.custom_404_view),
 
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
