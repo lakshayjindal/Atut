@@ -147,3 +147,6 @@ DEFAULT_MALE_FALLBACK_URL = "https://krtiayhjqgtsruzboour.supabase.co/storage/v1
 # === DATE FORMATS ===
 DATE_INPUT_FORMATS = ['%d-%m-%Y']
 DATE_FORMAT = 'd-m-Y'
+
+PORT = os.getenv("PORT", "8000")
+print(f"🚀 Django running on port {PORT}")

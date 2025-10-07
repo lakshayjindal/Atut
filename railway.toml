@@ -1,0 +1,10 @@
+[build]
+builder = "railpack"
+
+[build.env]
+PYTHON_VERSION = "3.11"
+
+[deploy]
+startCommand = "bash ./start.sh"
+healthcheckPath = "/"
+healthcheckTimeout = 60
