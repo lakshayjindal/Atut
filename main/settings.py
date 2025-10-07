@@ -10,13 +10,6 @@ SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-j73yrt8#0*c7m&dqno$_4$6l%9
 DEBUG = os.getenv("DEBUG", "True") == "True"
 
 ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    "atutvidhan.com",
-    ".onrender.com",
-    ".railway.app",
-    os.getenv("RAILWAY_STATIC_URL", ""),
-    os.getenv("RAILWAY_URL", ""),
     "*",  # allow all during testing
 ]
 
@@ -74,14 +67,22 @@ ASGI_APPLICATION = "main.asgi.application"
 WSGI_APPLICATION = 'main.wsgi.application'
 
 # === DATABASE ===
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://postgres:YcHTPRnlMKPThZuhvXLsrFYkntGrfVDp@yamanote.proxy.rlwy.net:43496/railway"
-)
-DATABASES = {
-    'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
-}
+os.environ.setdefault("PGDATABASE", "liftoff_dev")
+os.environ.setdefault("PGUSER", "username")
+os.environ.setdefault("PGPASSWORD", "")
+os.environ.setdefault("PGHOST", "localhost")
+os.environ.setdefault("PGPORT", "5432")
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ["PGDATABASE"],
+        'USER': os.environ["PGUSER"],
+        'PASSWORD': os.environ["PGPASSWORD"],
+        'HOST': os.environ["PGHOST"],
+        'PORT': os.environ["PGPORT"],
+    }
+}
 # === CHANNELS ===
 CHANNEL_LAYERS = {
     "default": {
