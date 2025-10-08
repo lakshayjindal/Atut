@@ -1,7 +1,9 @@
 from pathlib import Path
 import dj_database_url
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 # === BASE SETUP ===
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -72,17 +74,29 @@ os.environ.setdefault("PGUSER", "username")
 os.environ.setdefault("PGPASSWORD", "")
 os.environ.setdefault("PGHOST", "localhost")
 os.environ.setdefault("PGPORT", "5432")
+import os
+import dj_database_url
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ["PGDATABASE"],
-        'USER': os.environ["PGUSER"],
-        'PASSWORD': os.environ["PGPASSWORD"],
-        'HOST': os.environ["PGHOST"],
-        'PORT': os.environ["PGPORT"],
+db_live = os.environ.get('DB_LIVE', 'False').lower() == 'true'
+
+if db_live:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('PGDATABASE'),
+            'USER': os.environ.get('PGUSER'),
+            'PASSWORD': os.environ.get('PGPASSWORD'),
+            'HOST': os.environ.get('PGHOST'),
+            'PORT': os.environ.get('PGPORT'),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': dj_database_url.parse(
+            "postgresql://postgres:mHykRuIEhfmZBXxnCsvWwCppcyWbnFEq@caboose.proxy.rlwy.net:20664/railway"
+        )
+    }
+
 # === CHANNELS ===
 CHANNEL_LAYERS = {
     "default": {
