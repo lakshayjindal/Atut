@@ -74,12 +74,9 @@ os.environ.setdefault("PGUSER", "username")
 os.environ.setdefault("PGPASSWORD", "")
 os.environ.setdefault("PGHOST", "localhost")
 os.environ.setdefault("PGPORT", "5432")
-import os
-import dj_database_url
-
 db_live = os.environ.get('DB_LIVE', 'False').lower() == 'true'
 
-if db_live:
+if False:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -163,5 +160,5 @@ DEFAULT_MALE_FALLBACK_URL = "https://krtiayhjqgtsruzboour.supabase.co/storage/v1
 DATE_INPUT_FORMATS = ['%d-%m-%Y']
 DATE_FORMAT = 'd-m-Y'
 
-PORT = os.getenv("PORT", "8000")
-print(f"🚀 Django running on port {PORT}")
+# PORT = os.getenv("PORT", "8000")
+# print(f"🚀 Django running on port {PORT}")

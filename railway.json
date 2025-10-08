@@ -6,7 +6,7 @@
   "deploy": {
     "runtime": "V2",
     "numReplicas": 1,
-    "startCommand": "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn main.wsgi",
+    "startCommand": "python manage.py migrate && python manage.py collectstatic --noinput && daphne -b 0.0.0.0 -p ${PORT:-8000} main.asgi:application",
     "sleepApplication": false,
     "useLegacyStacker": false,
     "multiRegionConfig": {
