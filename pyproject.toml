@@ -5,9 +5,6 @@ description = "Atut Vidhan Matrimony Django ASGI App"
 authors = [
     { name = "Lakshay Jindal" }
 ]
-readme = "README.md"
-requires-python = ">=3.11"
-
 dependencies = [
     "Django>=5.2.1",
     "channels>=4.2.2",
