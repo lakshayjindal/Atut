@@ -30,7 +30,6 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.files.storage import default_storage
 from .forms import ProfileForm
 import uuid
-from supabase import Client, create_client
 from django.db.models import Q
 from django.utils import timezone
 from datetime import timedelta
@@ -44,7 +43,6 @@ User = get_user_model()
 
 
 # create client once (already done in original)
-supabase: Client = create_client(supabase_url=SUPABASE_URL, supabase_key=SUPABASE_KEY)
 
 # Precompiled regexes to avoid recompiling on each request
 _EMAIL_RE = re.compile(r"[^@]+@[^@]+\.[^@]+")
