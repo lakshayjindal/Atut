@@ -23,7 +23,7 @@ class User(AbstractUser):
         blank=True,
         db_index=True
     )
-
+    is_verified = models.BooleanField(default=False)
     email_otp = models.CharField(max_length=6, blank=True, null=True)
     otp_sent_at = models.DateTimeField(null=True, blank=True)
 

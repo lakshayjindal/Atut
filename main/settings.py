@@ -138,6 +138,8 @@ EMAIL_HOST_USER = "atutvidhanmatrimony@gmail.com"
 EMAIL_HOST_PASSWORD = "htynyxqhcfpzapvt"
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
+BREVO_API_KEY = os.environ.get('BREVO_API_KEY')
+
 # === SECURITY / CSRF ===
 CSRF_TRUSTED_ORIGINS = [
     "https://*.railway.app",
