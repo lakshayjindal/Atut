@@ -20,7 +20,7 @@ from django.http import JsonResponse
 from django.urls import reverse
 import string
 import mimetypes
-from utils import upload_to_supabase, generate_unique_username, generate_username
+from .utils import upload_to_supabase, generate_unique_username, generate_username
 import re
 from .models import Picture, Profile
 from datetime import date, datetime
