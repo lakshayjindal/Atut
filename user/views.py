@@ -629,5 +629,5 @@ def send_otp_email(user):
     })
     text_content = strip_tags(html_content)
 
-    send_brevo_email(subject, text_content, from_email, to, html_content)
+    send_brevo_email(subject, text_content, from_email, to_email, html_content)
 
