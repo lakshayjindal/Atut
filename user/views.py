@@ -15,7 +15,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
 from connect.models import ConnectionRequest
 import random
-from email_utils import *
+from .email_utils import  *
 from django.http import JsonResponse
 from django.urls import reverse
 import string
