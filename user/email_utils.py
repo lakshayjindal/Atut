@@ -47,6 +47,3 @@ def send_brevo_email(subject, text_content, from_email, to_list, html_content=No
     except Exception as e:
         logger.error("❌ Brevo email sending failed: %s", str(e), exc_info=True)
         return False
-    finally:
-        # Close client to release HTTP connections
-        api_client.close()
