@@ -528,9 +528,13 @@ def forgot_password_view(request):
             </div>
             """
 
-            send_brevo_email(subject, text_content, from_email, to, html_content )
-
-        messages.success(request, "If that email exists, a reset link has been sent.")
+            helper = EmailHelper()
+            result = helper.send_email(
+                subject=subject,
+                to=user.email,
+                html_content=html_content,
+            )
+            messages.success(request, "If that email exists, a reset link has been sent.")
         return redirect('login')
 
     return render(request, "user/auth/forgot_password.html")
