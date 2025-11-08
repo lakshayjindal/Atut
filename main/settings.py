@@ -90,7 +90,7 @@ if False:
 else:
     DATABASES = {
         'default': dj_database_url.parse(
-            "postgresql://postgres:mHykRuIEhfmZBXxnCsvWwCppcyWbnFEq@caboose.proxy.rlwy.net:20664/railway"
+            "postgresql://postgres:dr0YAI8Z4HsiA8Up@db.krtiayhjqgtsruzboour.supabase.co:5432/postgres"
         )
     }
 
