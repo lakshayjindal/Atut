@@ -76,7 +76,7 @@ os.environ.setdefault("PGHOST", "localhost")
 os.environ.setdefault("PGPORT", "5432")
 db_live = os.environ.get('DB_LIVE', 'False').lower() == 'true'
 
-if False:
+if db_live:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
