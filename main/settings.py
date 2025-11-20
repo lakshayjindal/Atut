@@ -74,9 +74,9 @@ if os.environ.get("DJANGO_ENV", "") == "prod":
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql_psycopg2",
-            "NAME": "myprojectdb",
-            "USER": "myprojectuser",
-            "PASSWORD": "strong_db_password",
+            "NAME": "atutvidhan",
+            "USER": "atutvidhan",
+            "PASSWORD": "AtutVidhan",
             "HOST": "localhost",
             "PORT": "",
         }
