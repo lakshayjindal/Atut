@@ -69,33 +69,25 @@ ASGI_APPLICATION = "main.asgi.application"
 WSGI_APPLICATION = 'main.wsgi.application'
 
 # === DATABASE ===
-os.environ.setdefault("PGDATABASE", "liftoff_dev")
-os.environ.setdefault("PGUSER", "username")
-os.environ.setdefault("PGPASSWORD", "")
-os.environ.setdefault("PGHOST", "localhost")
-os.environ.setdefault("PGPORT", "5432")
-db_live = os.environ.get('DB_LIVE', 'False').lower() == 'true'
 
-if db_live:
+if os.environ.get("DJANGO_ENV", "") == "prod":
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ.get('PGDATABASE'),
-
-
-
-            'USER': os.environ.get('PGUSER'),
-            'PASSWORD': os.environ.get('PGPASSWORD'),
-            'HOST': os.environ.get('PGHOST'),
-            'PORT': os.environ.get('PGPORT'),
+        "default": {
+            "ENGINE": "django.db.backends.postgresql_psycopg2",
+            "NAME": "myprojectdb",
+            "USER": "myprojectuser",
+            "PASSWORD": "strong_db_password",
+            "HOST": "localhost",
+            "PORT": "",
         }
     }
 else:
     DATABASES = {
-        'default': dj_database_url.parse(
+        "default": dj_database_url.parse(
             "postgresql://postgres:dr0YAI8Z4HsiA8Up@db.krtiayhjqgtsruzboour.supabase.co:5432/postgres"
         )
     }
+
 
 # === CHANNELS ===
 CHANNEL_LAYERS = {
