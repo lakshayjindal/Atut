@@ -84,7 +84,7 @@ if os.environ.get("DJANGO_ENV", "") == "prod":
 else:
     DATABASES = {
         "default": dj_database_url.parse(
-            "postgresql://postgres:dr0YAI8Z4HsiA8Up@db.krtiayhjqgtsruzboour.supabase.co:5432/postgres"
+            "postgresql://postgres:37Y4ArvHQFggBxvQ@db.bcdanhsorldyzrijjkdn.supabase.co:5432/postgres"
         )
     }
 
@@ -133,8 +133,8 @@ EMAIL_HOST_USER = "atutvidhanmatrimony@gmail.com"
 EMAIL_HOST_PASSWORD = "htynyxqhcfpzapvt"
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-BREVO_API_KEY = os.environ.get('BREVO_API_KEY')
-RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
+# BREVO_API_KEY = os.environ.get('BREVO_API_KEY')
+# RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
 
 # === SECURITY / CSRF ===
 CSRF_TRUSTED_ORIGINS = [

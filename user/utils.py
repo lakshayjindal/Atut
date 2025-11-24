@@ -8,8 +8,8 @@ from django.contrib.auth import get_user_model
 from supabase import Client, create_client
 
 User = get_user_model()
-SUPABASE_URL = "https://krtiayhjqgtsruzboour.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtydGlheWhqcWd0c3J1emJvb3VyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzA0NjQ0NywiZXhwIjoyMDY4NjIyNDQ3fQ.W-d9QUi65k6C3MCyn97qhTJInkikVKLU1_NAJgODds0"
+SUPABASE_URL = "https://bcdanhsorldyzrijjkdn.supabase.co"
+SUPABASE_KEY = "sb_secret_2-2NSXgt_LLlqRhffWPC3g_oQV0Xi7f"
 SUPABASE_BUCKET = "media"
 
 supabase: Client = create_client(supabase_url=SUPABASE_URL, supabase_key=SUPABASE_KEY)

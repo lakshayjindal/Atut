@@ -38,6 +38,8 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.conf import settings
 from django.core.files.uploadedfile import UploadedFile
+from .email_utils import send_html_email
+
 
 User = get_user_model()
 
@@ -484,57 +486,49 @@ def forgot_password_view(request):
         if user:
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             token = default_token_generator.make_token(user)
+
             reset_url = request.build_absolute_uri(
                 reverse('reset_password', kwargs={'uidb64': uid, 'token': token})
             )
 
             subject = "Reset Your Atut Vidhan Password"
-            from_email = settings.DEFAULT_FROM_EMAIL
-            to = [user.email]
-
-            text_content = f"""
-            Hi {user.first_name or user.username},
-
-            You requested to reset your password. Click the link below:
-
-            {reset_url}
-
-            If you didn't make this request, you can safely ignore this email.
-            """
 
             html_content = f"""
-            <div style="font-family: Arial, sans-serif; color: #333;">
-              <h2 style="color: #2c5282;">🔐 Reset Your Password</h2>
-              <p>Hi {user.first_name or user.username},</p>
-              <p>We received a request to reset your password for your <strong>Atut Vidhan</strong> account.</p>
-              <p>Click the button below to reset it:</p>
+                <div style="font-family: Arial, sans-serif; color: #333;">
+                <h2 style="color: #2c5282;">🔐 Reset Your Password</h2>
+                <p>Hi {user.first_name or user.username},</p>
+                <p>Click the button below to reset your password:</p>
 
-              <div style="margin: 20px 0; text-align: center;">
-                <a href="{reset_url}" style="
-                  background-color: #3182ce;
-                  color: white;
-                  padding: 12px 24px;
-                  border-radius: 6px;
-                  text-decoration: none;
-                  font-weight: bold;
-                  display: inline-block;
-                ">Reset Password</a>
-              </div>
+                <div style="margin: 20px 0; text-align: center;">
+                    <a href="{reset_url}" style="
+                    background-color: #3182ce;
+                    color: white;
+                    padding: 12px 24px;
+                    border-radius: 6px;
+                    text-decoration: none;
+                    font-weight: bold;
+                    display: inline-block;
+                    ">Reset Password</a>
+                </div>
 
-              <p style="font-size: 0.9rem; color: #555;">
-                If you didn’t request this, just ignore this email. Your password will remain unchanged.
-              </p>
-              <p style="margin-top: 32px;">With ❤️,<br><strong>Atut Vidhan Team</strong></p>
-            </div>
-            """
+                <p style="font-size: 0.9rem; color: #555;">
+                    If you didn’t request this, just ignore this email.
+                </p>
+                <p style="margin-top: 32px;">With ❤️,<br><strong>Atut Vidhan Team</strong></p>
+                </div>
+                """
 
-            helper = EmailHelper()
-            result = helper.send_email(
+            text_content = strip_tags(html_content)
+
+            send_html_email(
                 subject=subject,
                 to=user.email,
                 html_content=html_content,
+                text_content=text_content,
             )
-            messages.success(request, "If that email exists, a reset link has been sent.")
+
+        messages.success(request, "If that email exists, a reset link has been sent.")
+
         return redirect('login')
 
     return render(request, "user/auth/forgot_password.html")
@@ -563,32 +557,30 @@ def reset_password_view(request, uidb64, token):
                 user.save()
                 messages.success(request, "Password reset successful. You can now log in.")
                 subject = "Your Atut Vidhan Password Was Changed ✅"
-                from_email = settings.DEFAULT_FROM_EMAIL
-                to_email = [user.email]
-
-                text_content = f"""
-                Hi {user.first_name or user.username},
-
-                Your Atut Vidhan password was changed successfully.
-
-                If you did not make this change, contact our support immediately.
-                """
 
                 html_content = f"""
                 <div style="font-family: Arial, sans-serif; color: #333;">
-                  <h2 style="color: #2f855a;">✅ Password Changed Successfully</h2>
-                  <p>Hi {user.first_name or user.username},</p>
-                  <p>This is to confirm that your <strong>Atut Vidhan</strong> password was changed.</p>
+                <h2 style="color: #2f855a;">✅ Password Changed Successfully</h2>
+                <p>Hi {user.first_name or user.username},</p>
+                <p>Your password was changed for your <strong>Atut Vidhan</strong> account.</p>
 
-                  <p style="font-size: 0.9rem; color: #555;">
-                    If you didn't change your password, please <a href="mailto:support@atutvidhan.in">contact support</a> immediately.
-                  </p>
+                <p style="font-size: 0.9rem; color: #555;">
+                    If you didn't make this change, please contact support immediately.
+                </p>
 
-                  <p style="margin-top: 32px;">Regards,<br><strong>Atut Vidhan Team</strong></p>
+                <p style="margin-top: 32px;">Regards,<br><strong>Atut Vidhan Team</strong></p>
                 </div>
                 """
 
-                send_brevo_email(subject, text_content, from_email, to, html_content)
+                text_content = strip_tags(html_content)
+
+                send_html_email(
+                    subject=subject,
+                    to=user.email,
+                    html_content=html_content,
+                    text_content=text_content,
+                )
+
 
                 return redirect("login")
             else:
@@ -622,16 +614,19 @@ def magic_login(request, uidb64, token):
 
 
 def send_otp_email(user):
-    """Send a styled OTP email to the given user using HTML + text content."""
-    subject = "✨ Welcome to Atut Vidhan – Your OTP to Begin Your Journey"
-    from_email = settings.DEFAULT_FROM_EMAIL
-    to_email = [user.email]
+    """Send a styled OTP email asynchronously."""
+    subject = "✨ Welcome to Atut Vidhan - Your OTP to Begin Your Journey"
 
     html_content = render_to_string("emails/otp_email.html", {
         "user": user,
         "otp": user.email_otp,
     })
+
     text_content = strip_tags(html_content)
 
-    send_brevo_email(subject, text_content, from_email, to_email, html_content)
-
+    send_html_email(
+        subject=subject,
+        to=user.email,
+        html_content=html_content,
+        text_content=text_content,
+    )

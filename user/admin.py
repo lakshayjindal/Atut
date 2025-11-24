@@ -1,25 +1,20 @@
-from django.contrib import admin, messages
-from django.contrib.admin import ModelAdmin
-from .models import *
-from .email_utils import *
 from django import forms
-from django.shortcuts import render, redirect, HttpResponse
-from django.urls import path
-import csv
-from django.utils.text import slugify
-import json
-from django.utils.safestring import mark_safe
-from . import utils
+from django.contrib import admin, messages
+from django.urls import path, reverse
+from django.http import HttpResponse
 from django.utils.html import format_html
-import datetime
-from datetime import date
+from django.utils.text import slugify
 from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
-from django.urls import reverse
-from django.core.mail import EmailMultiAlternatives
+from django.utils.http import urlsafe_base64_encode
 from django.conf import settings
-from .views import upload_to_supabase
+import csv, json, datetime
+from datetime import date
+from .email_utils import send_html_email
+from .models import User, Profile, Picture
+from . import utils
+from .utils import upload_to_supabase
+
 admin.site.site_header = "Atut Vidhan Admin"
 admin.site.site_title = "Atut Vidhan"
 admin.site.index_title = "Welcome to Website Management"
@@ -29,68 +24,72 @@ class CsvImportForm(forms.Form):
 
 
 @admin.action(description="Send Login Link to All the selected users")
+@admin.action(description="Send Login Link to All the selected users")
 def send_link(modeladmin, request, queryset):
     sent_count = 0
 
     for user in queryset:
         if not user.email:
-            continue  # skip users with no email
+            continue  # skip users without email
 
-        # Generate secure login link
+        # Build secure login URL
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
         login_url = request.build_absolute_uri(
             reverse("magic_login", kwargs={"uidb64": uid, "token": token})
         )
 
-        # Subject + plain fallback
         subject = "🔑 Your One-Click Login Link"
-        from_email = settings.DEFAULT_FROM_EMAIL
-        to = [user.email]
 
+        # TEXT fallback
         text_content = f"""
-        Hi {user.first_name or user.username},
+Hi {user.first_name or user.username},
 
-        Use the link below to log into your Atut Vidhan account:
+Use the login link below to access your Atut Vidhan account:
 
-        {login_url}
+{login_url}
 
-        If you didn't request this, you can ignore it.
+If you did not request this login link, please ignore this message.
         """
 
-        # Styled HTML version
+        # HTML email
         html_content = f"""
-        <div style="font-family: Arial, sans-serif; color: #333;">
-          <h2 style="color: #2c5282;">✨ One-Click Login</h2>
-          <p>Hi {(user.first_name or user.username).title()},</p>
-          <p>We generated a secure login link for your <strong>Atut Vidhan Matrimony</strong> account.</p>
-          <p>Click the button below to log in instantly:</p>
+            <div style="font-family: Arial, sans-serif; color: #333;">
+            <h2 style="color: #2c5282;">✨ One-Click Login</h2>
+            <p>Hi {(user.first_name or user.username).title()},</p>
+            <p>Here is your secure login link:</p>
 
-          <div style="margin: 20px 0; text-align: center;">
-            <a href="{login_url}" style="
-              background-color: #38a169;
-              color: white;
-              padding: 12px 24px;
-              border-radius: 6px;
-              text-decoration: none;
-              font-weight: bold;
-              display: inline-block;
-            ">Log In</a>
-          </div>
+            <div style="margin: 20px 0; text-align: center;">
+                <a href="{login_url}" style="
+                background-color: #38a169;
+                color: white;
+                padding: 12px 24px;
+                border-radius: 6px;
+                text-decoration: none;
+                font-weight: bold;
+                display: inline-block;
+                ">Log In</a>
+            </div>
 
-          <p style="font-size: 0.9rem; color: #555;">
-            This link will expire soon for security reasons. If you didn’t request it, no worries — just ignore this email.
-          </p>
-          <p style="margin-top: 32px;">With ❤️,<br><strong>Atut Vidhan Team</strong></p>
-        </div>
+            <p style="font-size: 0.9rem; color: #555;">
+                If you didn’t request this, just ignore this email.
+            </p>
+            <p style="margin-top: 32px;">With ❤️,<br><strong>Atut Vidhan Team</strong></p>
+            </div>
         """
 
-        # Build + send email
-        send_brevo_email(subject, text_content, from_email, to, html_content)
+        # Send asynchronously
+        send_html_email(
+            subject=subject,
+            to=user.email,
+            html_content=html_content,
+            text_content=text_content,
+        )
 
         sent_count += 1
 
     messages.success(request, f"Login links sent to {sent_count} user(s).")
+
 
 @admin.action(description="Export selected users and profiles as CSV")
 def export_csv(self, request, queryset):
@@ -130,17 +129,20 @@ def export_csv(self, request, queryset):
 
 
 @admin.register(User)
+@admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     actions = ['export_csv', 'send_link']
     list_display = ('id', 'first_name', 'last_name', 'username', 'email')
     export_csv = export_csv
     send_link = send_link
+
     def get_urls(self):
         urls = super().get_urls()
         my_urls = [
             path('import-csv/', self.import_csv, name="import_csv"),
         ]
         return my_urls + urls
+
 
     def import_csv(self, request):
         if request.method == "POST" and "csv_file" in request.FILES:
