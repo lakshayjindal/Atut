@@ -11,6 +11,8 @@ from django.conf import settings
 import csv, json, datetime
 from datetime import date
 from .email_utils import send_html_email
+from django.shortcuts import render, redirect
+from django.db import models
 from .models import User, Profile, Picture
 from . import utils
 from .utils import upload_to_supabase
@@ -128,7 +130,6 @@ def export_csv(self, request, queryset):
 
 
 
-@admin.register(User)
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     actions = ['export_csv', 'send_link']
