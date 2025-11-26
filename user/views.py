@@ -37,7 +37,6 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.conf import settings
-from django.core.files.uploadedfile import UploadedFile
 from .email_utils import send_html_email
 
 
@@ -328,8 +327,8 @@ def complete_user(request):
             # upload_to_supabase will return a public URL
             profile_image_url = upload_to_supabase(profile_image)
             Picture.objects.create(
-                user=user,
-                profile_image_url=profile_image_url,
+                user=user, 
+                picture_url=profile_image_url,
                 is_profile=True
             )
 

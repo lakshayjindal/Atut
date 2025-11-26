@@ -6,6 +6,8 @@ import uuid
 import string
 from django.contrib.auth import get_user_model
 from supabase import Client, create_client
+from django.core.files.uploadedfile import UploadedFile
+import mimetypes
 
 User = get_user_model()
 SUPABASE_URL = "https://bcdanhsorldyzrijjkdn.supabase.co"
