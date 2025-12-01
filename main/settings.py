@@ -151,8 +151,8 @@ SESSION_COOKIE_SECURE = False
 
 # === CUSTOM FALLBACKS ===
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-DEFAULT_FEMALE_FALLBACK_URL = "https://krtiayhjqgtsruzboour.supabase.co/storage/v1/object/public/media/profile_images/femaledefault.png"
-DEFAULT_MALE_FALLBACK_URL = "https://krtiayhjqgtsruzboour.supabase.co/storage/v1/object/public/media/profile_images/maledefault.png"
+DEFAULT_FEMALE_FALLBACK_URL = "https://bcdanhsorldyzrijjkdn.supabase.co/storage/v1/object/public/media/media_files/femaledefault.png"
+DEFAULT_MALE_FALLBACK_URL = "https://bcdanhsorldyzrijjkdn.supabase.co/storage/v1/object/public/media/media_files/defaultmale.png"
 
 # === DATE FORMATS ===
 DATE_INPUT_FORMATS = ['%d-%m-%Y']
