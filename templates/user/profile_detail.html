@@ -271,8 +271,7 @@
         <h3>More Photos</h3>
 
         <div style="display: flex; gap: 15px; flex-wrap: wrap">
-          {% for pic in profile.user.pictures.all %} {% if forloop.first %} {#
-          Skip first photo because it's used as profile image #} {% else %}
+          {% for pic in profile.user.pictures.all %} {% if forloop.first %}  {% else %}
           <img
             src="{{ pic.picture_url }}"
             alt="More photo"
