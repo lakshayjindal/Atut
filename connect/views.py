@@ -332,34 +332,40 @@ def cancel_request(request, request_id):
 
     connection_request.delete()
     return JsonResponse({"success": True, "message": "Request canceled"})
-
-
 @login_required
+@require_POST
 def send_request(request, receiver_id):
     """
-    Send a new connection request to another user.
-
-    Args:
-        request (HttpRequest): Current request.
-        receiver_id (int): ID of the target user.
-
-    Returns:
-        HttpResponseRedirect: Redirect to dashboard with messages.
+    Send a connection request via AJAX (or normal POST fallback).
+    Returns JSON for AJAX requests with appropriate HTTP status codes.
     """
+
     receiver = get_object_or_404(User, id=receiver_id)
 
+    # Prevent sending request to self
     if receiver == request.user:
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return JsonResponse({"status": "error", "message": "You cannot send a request to yourself."}, status=400)
         messages.error(request, "You cannot send a request to yourself.")
-        return redirect("dashboard")
+        return redirect("user_dashboard")
 
+    # Create or get existing connection request
     connection_request, created = ConnectionRequest.objects.get_or_create(
         sender=request.user,
         receiver=receiver
     )
 
+    # If AJAX/fetch request -> return JSON
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        if created:
+            return JsonResponse({"status": "success", "message": "Connection request sent successfully."}, status=200)
+        else:
+            return JsonResponse({"status": "exists", "message": "You have already sent a request."}, status=200)
+
+    # Non-AJAX fallback
     if created:
         messages.success(request, f"Connection request sent to {receiver.username}!")
     else:
-        messages.warning(request, f"You have already sent a connection request to {receiver.username}.")
+        messages.warning(request, f"You already sent a request to {receiver.username}.")
 
     return redirect("user_dashboard")

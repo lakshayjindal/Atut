@@ -1,206 +1,297 @@
-{% extends "./base.html" %}
-{% load static %}
+{% extends "./base.html" %} {% load static %} {% block title %}User Dashboard |
+Atut Vidhan®{% endblock title %} {% block extra_head %}
+<style>
+  body {
+    background: var(--color-primary-bg);
+    font-family: "Poppins", sans-serif;
+  }
 
-{% block title %}User Dashboard | Atut Vidhan®{% endblock title %}
+  /* Welcome section */
+  .welcome {
+    margin: 40px 60px 10px;
+    text-align: left;
+  }
 
-{% block extra_head %}
-    <style>
-        body {
-            background: var(--color-primary-bg);
-            font-family: 'Poppins', sans-serif;
-        }
+  .welcome h2 {
+    font-weight: 600;
+    font-size: 28px;
+    color: var(--color-text-primary);
+  }
 
-        /* Welcome section */
-        .welcome {
-            margin: 40px 60px 10px;
-            text-align: left;
-        }
+  .welcome span {
+    font-family: "Great Vibes", cursive;
+    font-size: 42px;
+    color: var(--color-accent-1);
+  }
 
-        .welcome h2 {
-            font-weight: 600;
-            font-size: 28px;
-            color: var(--color-text-primary);
-        }
+  .subtitle {
+    font-family: "Playfair Display", serif;
+    font-size: 20px;
+    margin: 0 60px 30px;
+    color: var(--color-text-secondary);
+  }
 
-        .welcome span {
-            font-family: 'Great Vibes', cursive;
-            font-size: 42px;
-            color: var(--color-accent-1);
-        }
+  /* Profile grid */
+  .profiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 28px;
+    margin: 20px 60px;
+    padding-bottom: 60px;
+  }
 
-        .subtitle {
-            font-family: 'Playfair Display', serif;
-            font-size: 20px;
-            margin: 0 60px 30px;
-            color: var(--color-text-secondary);
-        }
+  .profile-card {
+    background: white;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
 
-        /* Profile grid */
-        .profiles {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 28px;
-            margin: 20px 60px;
-            padding-bottom: 60px;
-        }
+  .profile-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  }
 
-        .profile-card {
-            background: white;
-            border-radius: 18px;
-            overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
+  .profile-main-image {
+    width: 100%;
+    height: 240px;
+    object-fit: cover;
+    border-bottom: 2px solid var(--color-highlight);
+  }
 
-        .profile-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-        }
+  .profile-info {
+    padding: 16px;
+    text-align: center;
+  }
 
-        .profile-main-image {
-            width: 100%;
-            height: 240px;
-            object-fit: cover;
-            border-bottom: 2px solid var(--color-highlight);
-        }
+  .profile-info h3 {
+    font-size: 18px;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
 
-        .profile-info {
-            padding: 16px;
-            text-align: center;
-        }
+  .profile-info p {
+    margin: 3px 0;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
 
-        .profile-info h3 {
-            font-size: 18px;
-            margin-bottom: 6px;
-            font-weight: 600;
-            color: var(--color-text-primary);
-        }
+  .profile-info p strong {
+    color: var(--color-text-primary);
+  }
 
-        .profile-info p {
-            margin: 3px 0;
-            font-size: 14px;
-            color: var(--color-text-secondary);
-        }
+  /* Action buttons */
+  .card-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 0 18px;
+  }
 
-        .profile-info p strong {
-            color: var(--color-text-primary);
-        }
+  .btn {
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
 
-        /* Action buttons */
-        .card-actions {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            padding: 12px 0 18px;
-        }
+  .btn-view {
+    background: var(--color-secondary-bg);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-highlight);
+  }
 
-        .btn {
-            padding: 8px 16px;
-            font-size: 14px;
-            font-weight: 500;
-            border-radius: 6px;
-            text-decoration: none;
-            transition: all 0.2s ease;
-        }
+  .btn-view:hover {
+    background: var(--color-highlight);
+    color: white;
+  }
 
-        .btn-view {
-            background: var(--color-secondary-bg);
-            color: var(--color-text-primary);
-            border: 1px solid var(--color-highlight);
-        }
+  .btn-connect {
+    background: var(--color-accent-1);
+    color: white;
+    border: none;
+  }
 
-        .btn-view:hover {
-            background: var(--color-highlight);
-            color: white;
-        }
+  .btn-connect:hover {
+    background: var(--color-accent-2);
+    color: var(--color-text-primary);
+  }
 
-        .btn-connect {
-            background: var(--color-accent-1);
-            color: white;
-            border: none;
-        }
+  /* Empty state */
+  .no-profiles {
+    margin: 40px auto;
+    font-size: 17px;
+    color: var(--color-text-secondary);
+    text-align: center;
+  }
 
-        .btn-connect:hover {
-            background: var(--color-accent-2);
-            color: var(--color-text-primary);
-        }
+#toast {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    background: #28a745;
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    opacity: 0;
+    pointer-events: none;
+    transition: all .35s ease;
+    z-index: 2000;
+  }
+  #toast.show { opacity: 1; transform: translateY(-8px); pointer-events: auto; }
+  #toast.error { background: #d9534f; }
+</style>
+{% endblock extra_head %} {% block content %}
+<div class="welcome">
+  <h2>Namaskar, <span>{{ user_name|title }}</span></h2>
+</div>
 
-        /* Empty state */
-        .no-profiles {
-            margin: 40px auto;
-            font-size: 17px;
-            color: var(--color-text-secondary);
-            text-align: center;
-        }
-    </style>
-{% endblock extra_head %}
+<div id="toast"></div>
 
-{% block content %}
-    <div class="welcome">
-        <h2>Namaskar, <span>{{ user_name|title }}</span></h2>
+<div class="subtitle">We have some profiles for you</div>
+
+<div class="profiles">
+  {% for profile in matched_profiles %}
+  <div class="profile-card">
+    {% with first_pic=profile.user.pictures.first %} {% if first_pic %}
+    <img
+      src="{{ first_pic.picture_url }}"
+      alt="{{ profile.full_name }}"
+      class="profile-main-image"
+    />
+    {% else %} {% if profile.gender == "Male" %}
+    <img
+      src="{{ DEFAULT_MALE_FALLBACK_URL }}"
+      alt="Default Male Profile"
+      class="profile-main-image"
+    />
+    {% else %}
+    <img
+      src="{{ DEFAULT_FEMALE_FALLBACK_URL }}"
+      alt="Default Female Profile"
+      class="profile-main-image"
+    />
+    {% endif %} {% endif %} {% endwith %}
+
+    <div class="profile-info">
+      <h3>{{ profile.full_name }}</h3>
+      <p><strong>{{ profile.profession }}</strong></p>
+      <p>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 200 200"
+          xml:space="preserve"
+          width="40"
+          height="40"
+        >
+          <path
+            fill="var(--color-accent-1)"
+            d="M100.232 149.198c-2.8 0-5.4-1.8-7.2-5.2-22.2-41-22.4-41.4-22.4-41.6-3.2-5.1-4.9-11.3-4.9-17.6 0-19.1 15.5-34.6 34.6-34.6s34.6 15.5 34.6 34.6c0 6.5-1.8 12.8-5.2 18.2 0 0-1.2 2.4-22.2 41-1.9 3.4-4.4 5.2-7.3 5.2z"
+          />
+          <path
+            fill="var(--color-secondary-bg)"
+            d="M100.332 105.598c-10.6 0-19.1-8.6-19.1-19.1s8.5-19.2 19.1-19.2c10.6 0 19.1 8.6 19.1 19.1s-8.6 19.2-19.1 19.2z"
+          />
+        </svg>
+        {{ profile.city }}
+      </p>
+      <p>👤 {{ profile.age }}</p>
+      <p>{{ profile.education }}</p>
+      <p><em>{{ profile.bio|truncatewords:10 }}</em></p>
     </div>
 
-    <div class="subtitle">
-        We have some profiles for you
+    <div class="card-actions">
+      <a href="{% url 'profile_detail' profile.id %}" class="btn btn-view"
+        >View Profile</a
+      >
+      <button
+        class="btn btn-connect"
+        onclick="sendRequest('{{ profile.user.id }}', this)"
+      >
+        Connect
+      </button>
     </div>
+  </div>
+  {% empty %}
+  <p class="no-profiles">
+    No matching profiles found. Please check back later 🙏
+  </p>
+  {% endfor %}
+</div>
+{% endblock content %} {% block extra_scripts %}
+<script>
+  function showToast(msg, isError=false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = ''; // reset
+    if (isError) t.classList.add('error');
+    t.classList.add('show');
+    setTimeout(() => { t.classList.remove('show'); t.classList.remove('error'); }, 3000);
+  }
 
-    <div class="profiles">
-        {% for profile in matched_profiles %}
-            <div class="profile-card">
-                {% with first_pic=profile.user.pictures.first %}
-                    {% if first_pic %}
-                        <img src="{{ first_pic.picture_url }}" alt="{{ profile.full_name }}" class="profile-main-image">
-                    {% else %}
-                        {% if profile.gender == "Male" %}
-                            <img src="{{ DEFAULT_MALE_FALLBACK_URL }}" alt="Default Male Profile"
-                                 class="profile-main-image">
-                        {% else %}
-                            <img src="{{ DEFAULT_FEMALE_FALLBACK_URL }}" alt="Default Female Profile"
-                                 class="profile-main-image">
-                        {% endif %}
-                    {% endif %}
-                {% endwith %}
+  function getCSRFToken() {
+    // Read cookie 'csrftoken' (Django default)
+    return document.cookie.split('; ').reduce((acc, cookie) => {
+      const [name, val] = cookie.split('=');
+      return name === 'csrftoken' ? decodeURIComponent(val) : acc;
+    }, '');
+  }
 
+  async function sendRequest(toUserId, btn) {
+    // defensive: don't re-send if already disabled
+    if (btn.disabled) return;
 
-                <div class="profile-info">
-                    <h3>{{ profile.full_name }}</h3>
-                    <p><strong>{{ profile.profession }}</strong></p>
-                    <p><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" xml:space="preserve" width="40" height="40"><path fill="var(--color-accent-1)" d="M100.232 149.198c-2.8 0-5.4-1.8-7.2-5.2-22.2-41-22.4-41.4-22.4-41.6-3.2-5.1-4.9-11.3-4.9-17.6 0-19.1 15.5-34.6 34.6-34.6s34.6 15.5 34.6 34.6c0 6.5-1.8 12.8-5.2 18.2 0 0-1.2 2.4-22.2 41-1.9 3.4-4.4 5.2-7.3 5.2z"/><path fill="var(--color-secondary-bg)"
-        d="M100.332 105.598c-10.6 0-19.1-8.6-19.1-19.1s8.5-19.2 19.1-19.2c10.6 0 19.1 8.6 19.1 19.1s-8.6 19.2-19.1 19.2z"/>
-</svg> {{ profile.city }}</p>
-                    <p>👤 {{ profile.age }}</p>
-                    <p>{{ profile.education }}</p>
-                    <p><em>{{ profile.bio|truncatewords:10 }}</em></p>
-                </div>
+    btn.disabled = true;
+    const originalText = btn.innerText;
+    btn.innerText = 'Sending...';
 
-                <div class="card-actions">
-                    <a href="{% url 'profile_detail' profile.id %}" class="btn btn-view">View Profile</a>
-                    <a href="{% url 'send_request' profile.user.id %}" class="btn btn-connect">Connect</a>
-                </div>
-            </div>
-        {% empty %}
-            <p class="no-profiles">No matching profiles found. Please check back later 🙏</p>
-        {% endfor %}
-    </div>
-{% endblock content %}
+    try {
+        url = "{% url 'send_request' 0 %}"
+      const res = await fetch(url.replace("0", toUserId), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCSRFToken(),
+          'X-Requested-With': 'XMLHttpRequest', // important for server to detect AJAX
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({}) // empty body is OK
+      });
 
-{% block extra_scripts %}
-    <script>
-        function sendRequest(toUserId) {
-            fetch(`/api/send-request/${toUserId}/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCSRFToken(),
-                },
-                body: JSON.stringify({})
-            })
-                .then(response => response.ok ? response.json() : Promise.reject("Request failed"))
-                .then(data => console.log("Success:", data))
-                .catch(error => console.error("Error:", error));
-        }
-    </script>
+      // Try to parse JSON even for non-2xx so we can show message
+      let json = null;
+      try { json = await res.json(); } catch (e) { /* invalid JSON */ }
+
+      if (res.ok) {
+        // success (200)
+        const msg = (json && json.message) ? json.message : 'Request sent.';
+        btn.innerText = 'Requested ✓';
+        btn.style.pointerEvents = 'none';
+        btn.style.opacity = '0.75';
+        showToast(msg, false);
+      } else {
+        // non-OK: show server message if present, otherwise generic
+        const msg = (json && json.message) ? json.message : `Server returned ${res.status}`;
+        showToast(msg, true);
+        // restore button so user can try again
+        btn.disabled = false;
+        btn.innerText = originalText;
+      }
+    } catch (networkErr) {
+      console.error('Network or JS error:', networkErr);
+      showToast('Network error. Please try again.', true);
+      btn.disabled = false;
+      btn.innerText = originalText;
+    }
+  }
+</script>
+
 {% endblock %}

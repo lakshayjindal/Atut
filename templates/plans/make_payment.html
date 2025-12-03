@@ -1,4 +1,4 @@
-{% extends "../base.html" %}
+{% extends "../user/base.html" %}
 
 {% block extra_head %}
     <style>
@@ -110,7 +110,7 @@
 
         <div class="qr-section card">
             <h4>Scan & Pay</h4>
-            <img src="https://krtiayhjqgtsruzboour.supabase.co/storage/v1/object/public/media/sitemedia/atut.png" alt="QR Code" class="qr-code" width="220" height="220">
+            <img src="{{settings.qr_image.url}}" alt="QR Code" class="qr-code" width="220" height="220">
             <p class="note">Use your preferred UPI/Bank app to complete payment</p>
         </div>
 

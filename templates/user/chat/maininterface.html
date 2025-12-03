@@ -248,7 +248,7 @@
                     {% if first_pic %}
                         <img src="{{ first_pic.picture_url }}" alt="{{ chat_user.profile.full_name }}" class="profile-main-image">
                     {% else %}
-                        {% if profile.gender == "Male" %}
+                        {% if chat_user.profile.gender == "Male" %}
                             <img src="{{ DEFAULT_MALE_FALLBACK_URL }}" alt="Default Male Profile"
                                  class="profile-main-image">
                         {% else %}
@@ -273,7 +273,7 @@
                     {% if first_pic %}
                         <img src="{{ first_pic.picture_url }}" alt="{{ selected_user.profile.full_name }}" class="profile-main-image">
                     {% else %}
-                        {% if profile.gender == "Male" %}
+                        {% if selected_user.profile.gender == "Male" %}
                             <img src="{{ DEFAULT_MALE_FALLBACK_URL }}" alt="Default Male Profile"
                                  class="profile-main-image">
                         {% else %}

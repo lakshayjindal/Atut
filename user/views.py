@@ -92,7 +92,7 @@ def login_user(request):
                 user_obj = User.objects.filter(
                     Q(profile__phone1__endswith=normalized) |
                     Q(profile__phone2__endswith=normalized)
-                ).only('username').select_related('profile').first()
+                ).select_related('profile').first()
                 if user_obj:
                     user = authenticate(request, username=user_obj.username, password=password)
 

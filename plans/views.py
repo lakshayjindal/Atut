@@ -2,7 +2,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import PremiumPlan, Payment, UserSubscription
+from .models import PremiumPlan, Payment, UserSubscription, SiteSettings
 from datetime import date
 
 
@@ -21,25 +21,36 @@ def plans_list(request):
 def make_payment(request, plan_id):
     """Payment page for a specific plan"""
     plan = get_object_or_404(PremiumPlan, id=plan_id, is_active=True)
+    settings = SiteSettings.objects.first()  # Fetch QR from admin panel
 
     if request.method == "POST":
         transaction_id = request.POST.get("transaction_id")
-        screenshot_url = request.POST.get("screenshot")  # you’re storing URL instead of file
+        screenshot_file = request.FILES.get("screenshot")  # <-- FIXED: handles file upload
+
+        if not transaction_id and not screenshot_file:
+            messages.error(request, "Please enter UTR/Transaction ID OR upload a screenshot.")
+            return redirect("make_payment", plan_id=plan_id)
 
         payment = Payment.objects.create(
             user=request.user,
             plan=plan,
             amount=plan.price,
             transaction_id=transaction_id,
-            screenshot=screenshot_url,
-            status="pending",  # default
+            screenshot=screenshot_file,  # <-- stores uploaded file
+            status="pending",
         )
 
         messages.info(request, "Your payment has been submitted and is pending verification.")
         return redirect("plans_list")
 
-    return render(request, "plans/make_payment.html", {"plan": plan})
-
+    return render(
+        request,
+        "plans/make_payment.html",
+        {
+            "plan": plan,
+            "settings": settings,  # <-- pass QR to the template
+        }
+    )
 
 @login_required
 def my_subscription(request):

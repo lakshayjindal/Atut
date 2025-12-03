@@ -93,3 +93,15 @@ class Payment(models.Model):
         ordering = ["-created_at"]
         verbose_name = "Payment"
         verbose_name_plural = "Payments"
+
+
+class SiteSettings(models.Model):
+    qr_image = models.ImageField(upload_to="qr_codes/", blank=True, null=True)
+    active = models.BooleanField(default=True)
+    # Optional: only allow one settings row
+    def save(self, *args, **kwargs):
+        self.pk = 1  # always use primary key 1
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return "Site Settings (QR Code)"

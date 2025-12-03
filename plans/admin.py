@@ -29,3 +29,8 @@ class UserSubscriptionAdmin(admin.ModelAdmin):
     list_display = ["user", "plan", "start_date", "end_date", "is_active"]
     list_filter = ["is_active", "start_date", "end_date"]
     search_fields = ["user__username", "plan__name"]
+
+
+@admin.register(models.SiteSettings)
+class SiteSettingsAdmin(admin.ModelAdmin):
+    list_display = ("id", "qr_image")
