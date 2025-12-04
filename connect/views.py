@@ -15,6 +15,53 @@ import os
 from .models import ChatMessage, ConnectionRequest
 from user.models import Profile
 from user.views import upload_to_supabase
+import re
+
+# Word forms for 0-9
+NUMBER_WORDS = {
+    "zero","one","two","three","four","five","six","seven","eight","nine",
+    "oh","owe",  # common variants for 0
+}
+
+# Regex for detecting digits in any pattern
+DIGIT_PHONE_REGEX = re.compile(
+    r"""
+    (?:
+        \+?\d{1,4}            # country code or start
+        [\s\-\(\)]*           # separators
+    )?
+    (?:\d[\s\-\(\)]*){6,}     # at least 7 digits total
+    """,
+    re.VERBOSE
+)
+
+def contains_phone_number(text: str) -> bool:
+    if not text:
+        return False
+
+    t = text.lower()
+
+    # 1. Check direct digit-based phone patterns
+    if DIGIT_PHONE_REGEX.search(t):
+        return True
+
+    # 2. Check word-form numbers
+    words = re.findall(r"[a-z]+", t)
+    word_digit_count = 0
+
+    for w in words:
+        if w in NUMBER_WORDS:
+            word_digit_count += 1
+        else:
+            # reset if non-number word appears
+            word_digit_count = 0
+
+        # If someone writes 7+ number words consecutively → phone number
+        if word_digit_count >= 7:
+            return True
+
+    return False
+
 
 User = get_user_model()
 
@@ -100,22 +147,8 @@ def chat_view(request, chat_with=None):
         "selected_user_id": int(chat_with) if chat_with else None
     })
 
-
 @login_required
 def send_message(request):
-    """
-    Send a new chat message with optional attachment.
-
-    POST Params:
-        - receiver_id (int)
-        - message (str, optional)
-        - attachment (file, optional)
-
-    Returns:
-        JsonResponse: { ok: True, id: int, html: str }
-    """
-    if request.method != "POST":
-        return HttpResponseBadRequest("Only POST allowed")
 
     receiver_id = request.POST.get("receiver_id")
     if not receiver_id:
@@ -124,6 +157,11 @@ def send_message(request):
     receiver = get_object_or_404(User, id=receiver_id)
     text = request.POST.get("message", "").strip()
     attachment = request.FILES.get("attachment")
+
+    if text:
+        # 🚫 Block phone numbers in any form
+        if contains_phone_number(text):
+            return HttpResponseBadRequest("Phone numbers are not allowed.")
 
     if attachment:
         attachment = upload_to_supabase(attachment)
@@ -145,7 +183,6 @@ def send_message(request):
 
     html = render_to_string("user/partials/_message.html", {"msg": msg, "request": request})
     return JsonResponse({"ok": True, "id": msg.id, "html": html})
-
 
 @login_required
 def fetch_messages(request, user_id):

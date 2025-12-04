@@ -314,36 +314,45 @@
 {% block extra_scripts %}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        $(function () {
-            const $chatBox = $("#chatMessages");
-            const $form = $("#messageForm");
+$(function () {
+    const $chatBox = $("#chatMessages");
+    const $form = $("#messageForm");
 
-            // Auto-scroll down
-            function scrollToBottom() {
-                $chatBox.scrollTop($chatBox[0].scrollHeight);
+    function scrollToBottom() {
+        $chatBox.scrollTop($chatBox[0].scrollHeight);
+    }
+
+    $form.on("submit", function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+
+        $.ajax({
+            url: "{% url 'send_message' %}",
+            method: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+
+            success: function (data) {
+                if (data.html) {
+                    $chatBox.append(data.html);
+                    scrollToBottom();
+                    $("#messageInput").val("");
+                }
+            },
+
+            error: function (xhr) {
+                // Extract error message sent from Django
+                const errorMsg = xhr.responseText || "Something went wrong.";
+
+                // Show it to the user (you can customize UI)
+                alert("Message not sent: " + errorMsg);
             }
-
-            // Submit with AJAX
-            $form.on("submit", function (e) {
-                e.preventDefault();
-                const formData = new FormData(this);
-                $.ajax({
-                    url: "{% url 'send_message' %}",
-                    method: "POST",
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function (data) {
-                        if (data.html) {
-                            $chatBox.append(data.html);
-                            scrollToBottom();
-                            $("#messageInput").val("");
-                        }
-                    }
-                });
-            });
-
-            scrollToBottom();
         });
-    </script>
+    });
+
+    scrollToBottom();
+});
+</script>
+
 {% endblock %}
