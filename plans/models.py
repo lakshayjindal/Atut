@@ -22,15 +22,31 @@ class PremiumPlan(models.Model):
 
 
 class PlanFeature(models.Model):
-    name = models.CharField(max_length=200, unique=True)  # make features reusable
+
+    FEATURE_TYPES = [
+        ("max_messages", "Max Messages Per Day"),
+        ("max_requests", "Max Connection Requests Per Day"),
+        ("max_views", "Max Profile Views Per Day"),
+        ("can_view_phone", "Can View Phone Number"),
+        ("can_request_phone", "Can Request Phone Number"),
+        ("priority_support", "Priority Support"),
+        ("verified_badge", "Verified Badge"),
+        ("other", "Other (description only)"),
+    ]
+
+    name = models.CharField(max_length=50, choices=FEATURE_TYPES)
+    value = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="Leave blank for boolean features"
+    )
+
     plans = models.ManyToManyField("PremiumPlan", related_name="features", blank=True)
 
-    class Meta:
-        verbose_name = "Plan Feature"
-        verbose_name_plural = "Plan Features"
-
     def __str__(self):
-        return self.name
+        return f"{self.key}: {self.value or 'Yes'}"
+
 
 class UserSubscription(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="subscription")
@@ -88,6 +104,21 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"Payment #{self.id} - {self.user.username} - {self.plan.name if self.plan else 'No Plan'}"
+
+    # models.py
+
+    def approve(self):
+        """Mark payment approved and activate subscription."""
+        self.status = "success"
+        self.save()
+
+        subscription, created = UserSubscription.objects.get_or_create(user=self.user)
+        subscription.activate(self.plan)
+
+    def reject(self):
+        """Reject payment."""
+        self.status = "failed"
+        self.save()
 
     class Meta:
         ordering = ["-created_at"]

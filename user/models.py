@@ -34,6 +34,8 @@ class User(AbstractUser):
         self.email_otp = f"{random.randint(100000, 999999)}"
         self.otp_sent_at = timezone.now()
         self.save(update_fields=['email_otp', 'otp_sent_at'])
+    def __str__(self):
+        return f"{self.first_name} {self.last_name  } -> {self.username}"
 
 
 class Profile(models.Model):

@@ -1,0 +1,151 @@
+{% extends "../base.html" %}
+{% load static %}
+
+{% block title %}Complete Profile – Step 1{% endblock %}
+
+{% block extra_head %}
+<style>
+  .step-container {
+      max-width: 620px;
+      margin: 2rem auto 4rem;
+      background: #fffdf9;
+      border-left: 4px solid #d42f2f;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+
+  .step-title {
+      font-size: 26px;
+      color: #d42f2f;
+      margin-bottom: 18px;
+      font-weight: 600;
+  }
+
+  .form-group {
+      margin-bottom: 1.2rem;
+      display: flex;
+      flex-direction: column;
+  }
+
+  label {
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #333;
+  }
+
+  input, select, textarea {
+      padding: 10px;
+      border: 2px solid #e0a100;
+      border-radius: 6px;
+      background: #fffefa;
+      outline: none;
+      transition: .3s;
+  }
+
+  input:focus, select:focus, textarea:focus {
+      border-color: #d42f2f;
+      box-shadow: 0 0 3px rgba(212,47,47,0.3);
+  }
+
+  button {
+      background: #d42f2f;
+      padding: 12px 20px;
+      border-radius: 6px;
+      color: #fff;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: .3s;
+  }
+
+  button:hover { background: #b53030; }
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="step-container">
+    <h2 class="step-title">Step 1 — Basic Details</h2>
+
+    <form method="POST" action="{% url 'complete_profile_step1' %}">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Full Name</label>
+            <input name="full_name" required>
+        </div>
+
+        <div class="form-group">
+            <label>Gender</label>
+            <select name="gender" id="gender" onchange="toggleOther('gender')">
+                <option value="">-- Select --</option>
+                <option>Male</option>
+                <option>Female</option>
+                <option value="other">Other</option>
+            </select>
+            <input id="gender-other" name="gender_other" style="display:none; margin-top:8px;" placeholder="Please specify">
+        </div>
+<div class="form-group">
+    <label>Date of Birth</label>
+    <input type="date" name="dob" id="dob" required>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const dobInput = document.getElementById("dob");
+    const today = new Date();
+
+    const pad = n => n.toString().padStart(2, "0");
+
+    function format(date) {
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    }
+
+    const minAge = 18;
+    const maxAge = 60;
+
+    // maximum allowed → today - 18 years
+    const maxDate = new Date(today.getFullYear() - minAge, today.getMonth(), today.getDate());
+
+    // minimum allowed → today - 60 years
+    const minDate = new Date(today.getFullYear() - maxAge, today.getMonth(), today.getDate());
+
+    dobInput.max = format(maxDate);
+    dobInput.min = format(minDate);
+});
+</script>
+
+
+        <div class="form-group">
+            <label>Looking For</label>
+            <select name="looking_for" required>
+                <option value="">-- Select --</option>
+                <option value="Bride">Bride</option>
+                <option value="Groom">Groom</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Your Bio</label>
+            <textarea name="bio" rows="3" placeholder="Tell us something about you..." required></textarea>
+        </div>
+
+        <button type="submit">Next →</button>
+    </form>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function toggleOther(field) {
+    const sel = document.getElementById(field);
+    const other = document.getElementById(field+"-other");
+    if (sel.value === "other") { other.style.display="block"; other.required=true; }
+    else { other.style.display="none"; other.required=false; }
+}
+</script>
+{% endblock %}

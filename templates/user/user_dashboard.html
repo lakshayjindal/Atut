@@ -153,6 +153,62 @@ Atut Vidhan®{% endblock title %} {% block extra_head %}
 <div class="welcome">
   <h2>Namaskar, <span>{{ user_name|title }}</span></h2>
 </div>
+{% if is_premium %}
+<div style="margin: 0 60px 20px; padding: 18px; border-radius: 12px; background: #eaffea; border-left: 6px solid #28a745;">
+    <h3 style="margin: 0; font-weight: 600; color: #155724;">
+        ⭐ Premium Member {% if has_verified_badge %}<span style="color:#007bff;">✔ Verified</span>{% endif %}
+    </h3>
+
+    <p style="margin: 4px 0; color: #1b5e20;">
+        Plan: <strong>{{ plan_name }}</strong>
+    </p>
+
+    <p style="margin: 4px 0; color: #1b5e20;">
+        Expires: <strong>{{ plan_expiry }}</strong>
+    </p>
+
+    <p style="margin: 4px 0; color: #1b5e20;">
+        Messages Today: 
+        <strong>{{ remaining_messages }}</strong>
+    </p>
+
+    <p style="margin: 4px 0; color: #1b5e20;">
+        Requests Left Today: 
+        <strong>{{ remaining_requests }}</strong>
+    </p>
+
+    {% if can_view_phone %}
+    <p style="margin: 4px 0; color: #1b5e20;">📞 You can view phone numbers</p>
+    {% endif %}
+
+    {% if can_request_phone %}
+    <p style="margin: 4px 0; color: #1b5e20;">📩 You can request phone numbers</p>
+    {% endif %}
+</div>
+
+{% else %}
+<div style="margin: 0 60px 20px; padding: 18px; border-radius: 12px; background: #fff8e1; border-left: 6px solid #fbc02d;">
+    <h3 style="margin: 0; font-weight: 600; color: #b36b00;">
+        ⚠ Free Account
+    </h3>
+
+    <p style="margin: 4px 0; color: #7a5a2e;">
+        Daily Chats Left:
+        <strong>{{ remaining_messages }} / {{ max_messages }}</strong>
+    </p>
+
+    <p style="margin: 4px 0; color: #7a5a2e;">
+        Requests Left Today:
+        <strong>{{ remaining_requests }} / {{ max_requests }}</strong>
+    </p>
+
+    <a href="{% url 'plans_list' %}" 
+       style="margin-top: 8px; display:inline-block; padding:10px 16px; background:#ff9800; color:white; border-radius:6px; text-decoration:none;">
+      Upgrade to Premium
+    </a>
+</div>
+{% endif %}
+
 
 <div id="toast"></div>
 
@@ -182,7 +238,13 @@ Atut Vidhan®{% endblock title %} {% block extra_head %}
     {% endif %} {% endif %} {% endwith %}
 
     <div class="profile-info">
-      <h3>{{ profile.full_name }}</h3>
+      <h3>
+    {{ profile.full_name }}
+    {% if profile.user.subscription and profile.user.subscription.has_active_subscription %}
+        <span style="color:#ffc107;">⭐</span>
+    {% endif %}
+</h3>
+
       <p><strong>{{ profile.profession }}</strong></p>
       <p>
         <svg
@@ -212,12 +274,16 @@ Atut Vidhan®{% endblock title %} {% block extra_head %}
       <a href="{% url 'profile_detail' profile.id %}" class="btn btn-view"
         >View Profile</a
       >
-      <button
-        class="btn btn-connect"
+     <button class="btn btn-connect"
         onclick="sendRequest('{{ profile.user.id }}', this)"
-      >
+        {% if remaining_requests == 0 %}disabled style="opacity:0.6;"{% endif %}>
+    {% if remaining_requests == 0 %}
+        Limit Reached
+    {% else %}
         Connect
-      </button>
+    {% endif %}
+</button>
+
     </div>
   </div>
   {% empty %}

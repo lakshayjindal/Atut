@@ -24,7 +24,7 @@ staticfiles
 *.so
 *.pem
 *.pub
-*/.env
+.env
 
 .env
 # Distribution / packaging

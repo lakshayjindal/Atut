@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import PremiumPlan, Payment, UserSubscription, SiteSettings
 from datetime import date
-
+from user.utils import upload_to_supabase
 
 @login_required
 def plans_list(request):
@@ -26,7 +26,7 @@ def make_payment(request, plan_id):
     if request.method == "POST":
         transaction_id = request.POST.get("transaction_id")
         screenshot_file = request.FILES.get("screenshot")  # <-- FIXED: handles file upload
-
+        screenshot_file_url = upload_to_supabase(screenshot_file, "payments")
         if not transaction_id and not screenshot_file:
             messages.error(request, "Please enter UTR/Transaction ID OR upload a screenshot.")
             return redirect("make_payment", plan_id=plan_id)
@@ -36,7 +36,7 @@ def make_payment(request, plan_id):
             plan=plan,
             amount=plan.price,
             transaction_id=transaction_id,
-            screenshot=screenshot_file,  # <-- stores uploaded file
+            screenshot=screenshot_file_url,  # <-- stores uploaded file
             status="pending",
         )
 

@@ -309,117 +309,113 @@ def profile_detail(request, profile_id):
     return render(request, 'user/profile_detail.html', context)
 
 
+def save_profile_data(request, final_step=False):
+    """
+    Reusable function that processes ALL fields,
+    but only saves fields present in request.POST in each step.
+    """
+
+    user = request.user
+    profile, created = Profile.objects.get_or_create(user=user)
+
+    # Profile Image (final step only)
+    profile_image = request.FILES.get("profile_image")
+    if profile_image:
+        profile_image_url = upload_to_supabase(profile_image)
+        Picture.objects.create(
+            user=user,
+            picture_url=profile_image_url,
+            is_profile=True,
+        )
+
+    # helper: dropdown with "other"
+    def _get_field(base):
+        val = request.POST.get(base)
+        if val == "other":
+            return request.POST.get(f"{base}_other")
+        return val
+
+    fields = {
+        # Step 1
+        "full_name": request.POST.get("full_name"),
+        "gender": _get_field("gender"),
+        "bio": request.POST.get("bio"),
+        "looking_for": request.POST.get("looking_for"),
+
+        # Step 2
+        "phone1": normalize_phone(request.POST.get("phone1")),
+        "phone2": normalize_phone(request.POST.get("phone2")),
+        "mother_tongue": _get_field("mother_tongue"),
+        "caste": request.POST.get("caste"),
+        "gotra": request.POST.get("gotra"),
+
+        # Step 3
+        "education": _get_field("education"),
+        "profession": _get_field("profession"),
+        "occupation": request.POST.get("occupation"),
+        "income": _get_field("income"),
+
+        # Step 4
+        "city": request.POST.get("city"),
+        "state": _get_field("state"),
+        "country": _get_field("country"),
+        "date_of_birth": request.POST.get("dob"),
+    }
+
+    # Age calculation if dob present
+    dob = request.POST.get("dob")
+    if dob:
+        fields["age"] = calculate_age(dob)
+
+    update_fields = []
+    for key, value in fields.items():
+        if value not in [None, "", "None"]:  # only update provided fields
+            setattr(profile, key, value)
+            update_fields.append(key)
+
+    if update_fields:
+        profile.save(update_fields=update_fields)
+
+    return True
+
 @login_required
-def complete_user(request):
-    """
-    Handle profile completion:
-    - Uploads profile image to Supabase
-    - Updates User minimal fields (full_name, gender, age)
-    - Updates or creates Profile with additional info
-    - Redirects to dashboard on success
-    """
+def complete_profile_step1(request):
     if request.method == "POST":
-        user = request.user
+        age = calculate_age(request.POST.get("dob"))
 
-        # Profile Image
-        profile_image = request.FILES.get("profile_image")
-        if profile_image:
-            # upload_to_supabase will return a public URL
-            profile_image_url = upload_to_supabase(profile_image)
-            Picture.objects.create(
-                user=user, 
-                picture_url=profile_image_url,
-                is_profile=True
-            )
+        if age is None or age < 18 or age > 60:
+            messages.error(request, "Age must be between 18 and 60 years.")
+            return redirect("complete_profile_step1")
 
-        # Basic Inputs
-        full_name = (request.POST.get("full_name") or "").strip()
-        phone1 = normalize_phone(request.POST.get("phone1"))
-        phone2 = normalize_phone(request.POST.get("phone2"))
+        save_profile_data(request)
+        return redirect("complete_profile_step2")
 
-        # handle dropdowns with 'other' concisely
-        def _get_field(base):
-            val = request.POST.get(base)
-            if val == "other":
-                return request.POST.get(f"{base}_other")
-            return val
+    return render(request, "user/profile_steps/step1.html")
 
-        mother_tongue = _get_field("mother_tongue")
-        gender = _get_field("gender")
-        religion = _get_field("religion")
-        education = _get_field("education")
-        income = _get_field("income")
-        profession = _get_field("profession")
-        state = _get_field("state")
-        country = _get_field("country")
+@login_required
+def complete_profile_step2(request):
+    if request.method == "POST":
+        save_profile_data(request)
+        return redirect("complete_profile_step3")
 
-        # Remaining Fields
-        dob = request.POST.get("dob")
-        occupation = request.POST.get("occupation")
-        caste = (request.POST.get("caste") or "").strip()
-        gotra = (request.POST.get("gotra") or "").strip()
-        city = request.POST.get("city")
-        bio = (request.POST.get("bio") or "").strip()
-        looking_for = request.POST.get("looking_for")
+    return render(request, "user/profile_steps/step2.html")
 
-        age = calculate_age(dob)
-        if age is None and dob:
-            # invalid dob format; ignore age but still store dob raw or handle appropriately
-            age = None
+@login_required
+def complete_profile_step3(request):
+    if request.method == "POST":
+        save_profile_data(request)
+        return redirect("complete_profile_step4")
 
-        # Update User object minimally
-        # user_changed = False
-        # if getattr(user, "full_name", "") != full_name:
-        #     user.full_name = full_name
-        #     user_changed = True
-        # if getattr(user, "user_gender", "") != gender:
-        #     user.user_gender = gender
-        #     user_changed = True
-        # if age is not None and getattr(user, "age", None) != age:
-        #     user.age = age
-        #     user_changed = True
-        # if user_changed:
-        #     # Save only the changed fields
-        #     user.save(update_fields=[f for f in ["full_name", "user_gender", "age"] if hasattr(user, f)])
+    return render(request, "user/profile_steps/step3.html")
 
-        # Get or create profile and bulk update fields then save with update_fields
-        profile, created = Profile.objects.get_or_create(user=user)
-
-        profile_fields = {
-            "full_name": full_name,
-            "phone1": phone1,
-            "phone2": phone2,
-            "date_of_birth": dob,
-            "gender": gender,
-            "religion": religion,
-            "education": education,
-            "occupation": occupation,
-            "income": income,
-            "state": state,
-            "city": city,
-            "mother_tongue": mother_tongue,
-            "profession": profession,
-            "looking_for": looking_for or get_opposite_gender(gender),
-            "caste": caste,
-            "gotra": gotra,
-            "bio": bio,
-            "country": country,
-            "age": age,
-        }
-
-        # Assign fields and build update_fields list
-        update_fields = []
-        for key, value in profile_fields.items():
-            if getattr(profile, key, None) != value:
-                setattr(profile, key, value)
-                update_fields.append(key)
-
-        if update_fields:
-            profile.save(update_fields=update_fields)
-
+@login_required
+def complete_profile_step4(request):
+    if request.method == "POST":
+        save_profile_data(request, final_step=True)
+        messages.success(request, "Profile completed successfully!")
         return redirect("user_dashboard")
 
-    return render(request, "user/complete_profile.html")
+    return render(request, "user/profile_steps/step4.html")
 
 
 def get_opposite_gender(gender):

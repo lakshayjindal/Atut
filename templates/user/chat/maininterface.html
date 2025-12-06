@@ -232,11 +232,45 @@
     .btn.send:hover {
         background: #9c4955;
     }
+    #chatToast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: #b75d69; /* accent color */
+    color: white;
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
+    transition: all .35s ease;
+    z-index: 3000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+#chatToast.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+#chatToast.error {
+    background: #d9534f; /* soft red */
+}
+
+#chatToast.success {
+    background: #6ba67a; /* sage green */
+}
+
 </style>
 
 {% endblock %}
 
 {% block content %}
+
+<div id="chatToast"></div>
+
     <div class="container">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -314,6 +348,23 @@
 {% block extra_scripts %}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+function showChatToast(message, type = "error") {
+    const t = document.getElementById("chatToast");
+    t.textContent = message;
+
+    // reset classes
+    t.className = "";
+    t.classList.add(type);
+    t.classList.add("show");
+
+    // hide after 3 seconds
+    setTimeout(() => {
+        t.classList.remove("show");
+    }, 3000);
+}
+</script>
+
+    <script>
 $(function () {
     const $chatBox = $("#chatMessages");
     const $form = $("#messageForm");
@@ -323,33 +374,31 @@ $(function () {
     }
 
     $form.on("submit", function (e) {
-        e.preventDefault();
-        const formData = new FormData(this);
+    e.preventDefault();
+    const formData = new FormData(this);
 
-        $.ajax({
-            url: "{% url 'send_message' %}",
-            method: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
+    $.ajax({
+        url: "{% url 'send_message' %}",
+        method: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
 
-            success: function (data) {
-                if (data.html) {
-                    $chatBox.append(data.html);
-                    scrollToBottom();
-                    $("#messageInput").val("");
-                }
-            },
-
-            error: function (xhr) {
-                // Extract error message sent from Django
-                const errorMsg = xhr.responseText || "Something went wrong.";
-
-                // Show it to the user (you can customize UI)
-                alert("Message not sent: " + errorMsg);
+        success: function (data) {
+            if (data.html) {
+                $chatBox.append(data.html);
+                scrollToBottom();
+                $("#messageInput").val("");
             }
-        });
+        },
+
+        error: function (xhr) {
+            const errorMsg = xhr.responseText || "Unable to send message.";
+            showChatToast(errorMsg, "error");
+        }
     });
+});
+
 
     scrollToBottom();
 });

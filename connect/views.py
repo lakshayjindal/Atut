@@ -11,11 +11,12 @@ from asgiref.sync import async_to_sync
 from django.contrib import messages
 from django.template.loader import render_to_string
 import os
-
+from plans.utils import user_is_premium
 from .models import ChatMessage, ConnectionRequest
 from user.models import Profile
 from user.views import upload_to_supabase
 import re
+from datetime import date
 
 # Word forms for 0-9
 NUMBER_WORDS = {
@@ -58,6 +59,32 @@ def contains_phone_number(text: str) -> bool:
 
         # If someone writes 7+ number words consecutively → phone number
         if word_digit_count >= 7:
+            return True
+
+    return False
+
+def sending_phone_across_messages(user, receiver) -> bool:
+    # Get last 10 messages by this user to this receiver
+    recent = ChatMessage.objects.filter(
+        sender=user,
+        receiver=receiver
+    ).order_by("-timestamp")[:10]
+
+    digit_count = 0
+
+    for msg in recent:
+        if not msg.message:
+            continue
+
+        # count digits in each message
+        digits = re.findall(r"\d", msg.message)
+        digit_count += len(digits)
+
+        # also count spelled-out numbers
+        words = re.findall(r"[a-z]+", msg.message.lower())
+        digit_count += sum(1 for w in words if w in NUMBER_WORDS)
+
+        if digit_count >= 7:
             return True
 
     return False
@@ -146,11 +173,12 @@ def chat_view(request, chat_with=None):
         "messages": messages,
         "selected_user_id": int(chat_with) if chat_with else None
     })
-
 @login_required
 def send_message(request):
 
+    user = request.user
     receiver_id = request.POST.get("receiver_id")
+
     if not receiver_id:
         return HttpResponseBadRequest("Missing receiver_id")
 
@@ -158,11 +186,50 @@ def send_message(request):
     text = request.POST.get("message", "").strip()
     attachment = request.FILES.get("attachment")
 
+    # -----------------------------
+    # 🔥 PREMIUM FEATURE CHECKS
+    # -----------------------------
+    is_premium = user_is_premium(user)
+
+    # 1️⃣ FREE USER: Daily message limit
+    if not is_premium:
+        today = date.today()
+        sent_today = ChatMessage.objects.filter(
+            sender=user,
+            timestamp__date=today
+        ).count()
+
+        MAX_FREE_MESSAGES = 20  # change anytime
+        if sent_today >= MAX_FREE_MESSAGES:
+            return HttpResponseBadRequest(
+                f"You reached your daily message limit ({MAX_FREE_MESSAGES}). Upgrade for unlimited chatting!"
+            )
+
+    # 2️⃣ FREE USER: No attachments allowed
+    if attachment and not is_premium:
+        return HttpResponseBadRequest("Sending images or files is a premium feature. Upgrade to enable it.")
+
+    # 3️⃣ FREE USER: Limit message length
+    if text and not is_premium:
+        MAX_FREE_MESSAGE_LEN = 200
+        if len(text) > MAX_FREE_MESSAGE_LEN:
+            return HttpResponseBadRequest(
+                f"Your message is too long. Free accounts allow up to {MAX_FREE_MESSAGE_LEN} characters."
+            )
+
+    # -------------------------------------------------
+    # 🔍 Your existing phone detection logic (unchanged)
+    # -------------------------------------------------
     if text:
-        # 🚫 Block phone numbers in any form
         if contains_phone_number(text):
             return HttpResponseBadRequest("Phone numbers are not allowed.")
 
+        if sending_phone_across_messages(request.user, receiver):
+            return HttpResponseBadRequest("You cannot send sequences of numbers that form phone numbers.")
+
+    # -------------------------------------------------
+    # Attachment upload logic
+    # -------------------------------------------------
     if attachment:
         attachment = upload_to_supabase(attachment)
 
@@ -173,6 +240,9 @@ def send_message(request):
     if not ok:
         return HttpResponseBadRequest(err)
 
+    # -------------------------------------------------
+    # Save the message
+    # -------------------------------------------------
     msg = ChatMessage.objects.create(
         sender=request.user,
         receiver=receiver,
@@ -369,30 +439,54 @@ def cancel_request(request, request_id):
 
     connection_request.delete()
     return JsonResponse({"success": True, "message": "Request canceled"})
+
+
 @login_required
 @require_POST
 def send_request(request, receiver_id):
-    """
-    Send a connection request via AJAX (or normal POST fallback).
-    Returns JSON for AJAX requests with appropriate HTTP status codes.
-    """
 
+    user = request.user
     receiver = get_object_or_404(User, id=receiver_id)
 
-    # Prevent sending request to self
+    # PREVENT SENDING REQUEST TO SELF
     if receiver == request.user:
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             return JsonResponse({"status": "error", "message": "You cannot send a request to yourself."}, status=400)
         messages.error(request, "You cannot send a request to yourself.")
         return redirect("user_dashboard")
 
-    # Create or get existing connection request
+    # -----------------------------
+    # 🔥 PREMIUM FEATURE CHECK
+    # -----------------------------
+    is_premium = user_is_premium(user)
+
+    if not is_premium:
+        # Count requests sent today
+        today = date.today()
+        sent_today = ConnectionRequest.objects.filter(
+            sender=user,
+            timestamp__date=today
+        ).count()
+
+        MAX_FREE_REQUESTS = 5  # change as you wish
+
+        if sent_today >= MAX_FREE_REQUESTS:
+            msg = f"You reached your daily limit of {MAX_FREE_REQUESTS} connection requests. Upgrade for unlimited requests!"
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                return JsonResponse({"status": "limit", "message": msg}, status=400)
+
+            messages.error(request, msg)
+            return redirect("user_dashboard")
+
+    # -----------------------------
+    # CREATE OR GET EXISTING REQUEST
+    # -----------------------------
     connection_request, created = ConnectionRequest.objects.get_or_create(
         sender=request.user,
         receiver=receiver
     )
 
-    # If AJAX/fetch request -> return JSON
+    # If AJAX
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
         if created:
             return JsonResponse({"status": "success", "message": "Connection request sent successfully."}, status=200)
