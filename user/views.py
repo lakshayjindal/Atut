@@ -629,7 +629,8 @@ def send_otp_email(user):
 @login_required
 def accept_terms(request):
     user = request.user
-    user.accepted_terms = True
+    user.terms_accepted = True
+    user.terms_accepted_on = datetime.now()
     user.save()
 
     return JsonResponse({'success':True})
