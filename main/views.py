@@ -35,7 +35,7 @@ def redirect_user_dashboard(request):
         user_profile = user.profile
     except Profile.DoesNotExist:
         messages.error(request, "Kindly complete your profile before proceeding further.")
-        return redirect("complete_profile")
+        return redirect("complete_profile_step1")
 
     # -----------------------------
     # ⭐ PREMIUM STATUS & USAGE DATA
@@ -111,6 +111,7 @@ def redirect_user_dashboard(request):
     context = {
         "user_name": user_name,
         "matched_profiles": matched_profiles,
+        'has_accepted_terms': user.terms_accepted,
 
         # --- PREMIUM DATA ---
         "is_premium": is_premium,

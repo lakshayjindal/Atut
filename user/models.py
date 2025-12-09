@@ -26,7 +26,8 @@ class User(AbstractUser):
     is_verified = models.BooleanField(default=False)
     email_otp = models.CharField(max_length=6, blank=True, null=True)
     otp_sent_at = models.DateTimeField(null=True, blank=True)
-
+    terms_accepted = models.BooleanField(default=False)
+    terms_accepted_on = models.DateTimeField( auto_now=False, auto_now_add=False, null=True)
     def generate_otp(self):
         """
         Generates a 6-digit OTP and records the timestamp.

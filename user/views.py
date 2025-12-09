@@ -625,3 +625,11 @@ def send_otp_email(user):
         html_content=html_content,
         text_content=text_content,
     )
+
+@login_required
+def accept_terms(request):
+    user = request.user
+    user.accepted_terms = True
+    user.save()
+
+    return JsonResponse({'success':True})

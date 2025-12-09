@@ -148,6 +148,93 @@ Atut Vidhan®{% endblock title %} {% block extra_head %}
   }
   #toast.show { opacity: 1; transform: translateY(-8px); pointer-events: auto; }
   #toast.error { background: #d9534f; }
+/* --- Background Overlay --- */
+.termsModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.55);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 4000;
+  animation: fadeIn .4s ease;
+}
+
+.termsModal.active {
+  display: flex;
+}
+
+/* --- Modal Card --- */
+.termsModalContent {
+  width: 90%;
+  max-width: 520px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 22px 26px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  animation: slideUp .35s ease;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Modal Header --- */
+.modalHead h2 {
+  margin: 0 0 6px;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.modalHead p {
+  margin: 0 0 12px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+/* --- Scrollable Content --- */
+.modalBody {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 6px;
+  color: var(--color-text-secondary);
+  font-size: 15px;
+  line-height: 1.5;
+  margin-bottom: 18px;
+}
+
+/* --- Footer Button --- */
+.acceptBtn {
+  width: 100%;
+  background: var(--color-accent-1);
+  color: white;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.acceptBtn:hover {
+  background: var(--color-accent-2);
+}
+
+/* --- Animations --- */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
 </style>
 {% endblock extra_head %} {% block content %}
 <div class="welcome">
@@ -292,6 +379,52 @@ Atut Vidhan®{% endblock title %} {% block extra_head %}
   </p>
   {% endfor %}
 </div>
+
+<<!-- TERMS MODAL -->
+<div class="termsModal" id="termsModal">
+  <div class="termsModalContent">
+
+    <!-- Header -->
+    <div class="modalHead">
+      <h2>Terms & Conditions</h2>
+      <p>Please read the following terms carefully before using the platform.</p>
+    </div>
+
+    <!-- Scrollable Content -->
+    <div class="modalBody">
+      <p>
+        Welcome to our platform! By continuing, you agree to follow all guidelines 
+        outlined by the company. These include respecting other users, using the 
+        platform responsibly, and complying with all applicable rules and regulations.
+      </p>
+
+      <p>
+        Misuse of the platform, including harassment, misinformation, or 
+        attempts to manipulate the system, will result in suspension or account termination.
+      </p>
+
+      <p>
+        We value your privacy and ensure your data is handled securely. You may 
+        contact support for any concerns.
+      </p>
+
+      <p>
+        By clicking **Accept & Continue**, you confirm that you have read and agreed 
+        to the Terms & Conditions.
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="modalFooter">
+      <button id="acceptTermsBtn" class="acceptBtn">
+        Accept & Continue
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
 {% endblock content %} {% block extra_scripts %}
 <script>
   function showToast(msg, isError=false) {
@@ -359,5 +492,30 @@ Atut Vidhan®{% endblock title %} {% block extra_head %}
     }
   }
 </script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const hasAcceptedTerms = {{ has_accepted_terms|yesno:"true,false" }};
+
+    if (!hasAcceptedTerms) {
+        document.getElementById("termsModal").classList.add("active");
+    }
+});
+
+document.getElementById("acceptTermsBtn").addEventListener("click", () => {
+  document.getElementById("termsModal").classList.remove("active");
+    fetch("{% url 'accept_terms' %}", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": getCSRFToken(),
+            "X-Requested-With": "XMLHttpRequest"
+        }
+    }).then(() => {
+        showToast("Thank you for accepting the terms!", false);
+    });
+});
+</script>
+
+
 
 {% endblock %}

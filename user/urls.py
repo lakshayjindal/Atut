@@ -8,6 +8,7 @@ urlpatterns = [
     path("logout/", views.logout_user, name="logout"),
     path("verify-otp/", views.verify_otp_view, name="verify_otp"),
     path("magic-login/<uidb64>/<token>/", views.magic_login, name="magic_login"),
+    path("accept-terms/", views.accept_terms, name="accept_terms"),
 
     # Password reset
     path("forgot-password/", views.forgot_password_view, name="forgot_password"),
