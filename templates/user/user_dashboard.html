@@ -281,12 +281,12 @@ Atut Vidhan®{% endblock title %} {% block extra_head %}
 
     <p style="margin: 4px 0; color: #7a5a2e;">
         Daily Chats Left:
-        <strong>{{ remaining_messages }} / {{ max_messages }}</strong>
+        <strong>{{ remaining_messages }} / {{ max_free_messages }}</strong>
     </p>
 
     <p style="margin: 4px 0; color: #7a5a2e;">
         Requests Left Today:
-        <strong>{{ remaining_requests }} / {{ max_requests }}</strong>
+        <strong>{{ remaining_requests }} / {{ max_free_requests }}</strong>
     </p>
 
     <a href="{% url 'plans_list' %}" 
