@@ -460,7 +460,7 @@ def verify_otp_view(request):
             user.save(update_fields=["is_active", "is_verified", "email_otp"])
             login(request, user)
             request.session.pop("pending_user_id", None)
-            return redirect("complete_profile")
+            return redirect("complete_profile_step1")
         else:
             messages.error(request, "Incorrect OTP. Please try again.")
 

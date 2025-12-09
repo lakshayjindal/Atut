@@ -13,7 +13,7 @@ urlpatterns = [
     path("forgot-password/", views.forgot_password_view, name="forgot_password"),
     path("reset/<uidb64>/<token>/", views.reset_password_view, name="reset_password"),
 
-    path("complete/", views.complete_profile_step1, name="complete_profile"),
+    path("complete/", views.complete_profile_step1, name="complete_profile_step1"),
 path("complete-profile/step2/", views.complete_profile_step2, name="complete_profile_step2"),
 path("complete-profile/step3/", views.complete_profile_step3, name="complete_profile_step3"),
 path("complete-profile/step4/", views.complete_profile_step4, name="complete_profile_step4"),
