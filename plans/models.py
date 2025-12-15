@@ -45,7 +45,7 @@ class PlanFeature(models.Model):
     plans = models.ManyToManyField("PremiumPlan", related_name="features", blank=True)
 
     def __str__(self):
-        return f"{self.key}: {self.value or 'Yes'}"
+        return f"{self.name}: {self.value or 'Yes'}"
 
 
 class UserSubscription(models.Model):
