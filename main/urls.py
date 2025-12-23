@@ -32,7 +32,7 @@ urlpatterns = [
                   path('health/', healthcheck),
                   path('siteadmin/', admin.site.urls, name='siteadmin'),
                   path('', views.entry_user, name='homepage'),
-                  path('customMadeAdmin/', include('siteadmin.urls')),
+                  path('admin/', include('siteadmin.urls')),
                   path('auth/', include('user.urls')),
                   path('user_dashboard', views.redirect_user_dashboard, name="user_dashboard"),
                   path('chat/', include("connect.urls")),

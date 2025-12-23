@@ -122,7 +122,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # === AUTH / USER MODEL ===
 AUTH_USER_MODEL = 'user.User'
-LOGIN_URL = "auth/"
+LOGIN_URL = "/auth/"
 
 # === EMAIL (Gmail SMTP) ===
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"

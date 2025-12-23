@@ -24,6 +24,7 @@ class User(AbstractUser):
         db_index=True
     )
     is_verified = models.BooleanField(default=False)
+    is_operator = models.BooleanField(default=False)
     email_otp = models.CharField(max_length=6, blank=True, null=True)
     otp_sent_at = models.DateTimeField(null=True, blank=True)
     terms_accepted = models.BooleanField(default=False)

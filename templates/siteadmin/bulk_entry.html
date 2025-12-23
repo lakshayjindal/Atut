@@ -1,0 +1,333 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Operator Bulk Entry</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --card: #ffffff;
+      --border: #dcdfe4;
+      --accent: #2563eb;
+      --error: #dc2626;
+      --ok: #16a34a;
+      --text: #1f2937;
+      --muted: #6b7280;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      background: var(--card);
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 18px;
+      margin: 0;
+    }
+
+    button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    button.secondary {
+      background: #e5e7eb;
+      color: #111;
+    }
+
+    main {
+      padding: 16px;
+    }
+
+    /* ---------- Field selector ---------- */
+    .field-selector {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+    }
+
+    .field-selector h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .field-selector label {
+      display: inline-block;
+      margin-right: 16px;
+      font-size: 13px;
+    }
+
+    /* ---------- Table ---------- */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card);
+      border-radius: 10px;
+      overflow: hidden;
+      min-width: 1200px;
+    }
+
+    thead {
+      background: #f1f5f9;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 6px;
+      font-size: 13px;
+    }
+
+    td input, td select, td textarea {
+      width: 100%;
+      padding: 6px;
+      border-radius: 4px;
+      border: 1px solid transparent;
+      font-size: 13px;
+      background: transparent;
+    }
+
+    td textarea {
+      resize: vertical;
+      min-height: 32px;
+    }
+
+    td input:focus, td select:focus, td textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: #fff;
+    }
+
+    tr.invalid td { background: #fef2f2; }
+    tr.valid td { background: #f0fdf4; }
+
+    .status {
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status.ok { color: var(--ok); }
+    .status.err { color: var(--error); }
+
+    tfoot td {
+      padding: 10px;
+      text-align: center;
+      background: #f8fafc;
+      cursor: pointer;
+      color: var(--accent);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Bulk Data Entry — Operator Panel</h1>
+  <div>
+    <button class="secondary" onclick="addRow()">+ Add Row</button>
+    <button onclick="submitAll()">Save All (Ctrl + Enter)</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- FIELD SELECTOR -->
+  <div class="field-selector">
+    <h3>Fields to Enter</h3>
+    {% for field in operator_fields %}
+      <label>
+        <input
+          type="checkbox"
+          data-field="{{ field.key }}"
+          {% if field.required %}checked disabled{% else %}checked{% endif %}
+        >
+        {{ field.label }}
+        {% if field.required %}<small>(required)</small>{% endif %}
+      </label>
+    {% endfor %}
+  </div>
+
+  <!-- TABLE -->
+  <table>
+    <thead>
+      <tr id="tableHead"></tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+    <tfoot>
+      <tr>
+        <td id="addRowCell" colspan="1" onclick="addRow()">+ Add New Person</td>
+      </tr>
+    </tfoot>
+  </table>
+
+</main>
+
+{{ operator_fields|json_script:"operator-fields-data" }}
+<script>
+
+  const FIELD_CONFIG = JSON.parse(
+  document.getElementById("operator-fields-data").textContent
+);
+
+
+  function activeFields() {
+    return FIELD_CONFIG.filter(f =>
+      document.querySelector(`[data-field="${f.key}"]`)?.checked
+    );
+  }
+
+  function renderHead() {
+    const head = document.getElementById("tableHead");
+    head.innerHTML = "";
+
+    activeFields().forEach(f => {
+      const th = document.createElement("th");
+      th.textContent = f.label;
+      head.appendChild(th);
+    });
+
+    const st = document.createElement("th");
+    st.textContent = "Status";
+    head.appendChild(st);
+
+    document.getElementById("addRowCell").colSpan = activeFields().length + 1;
+  }
+
+  function createInput(field) {
+    if (field.type === "select") {
+      const s = document.createElement("select");
+      (field.choices || []).forEach(c => {
+        const o = document.createElement("option");
+        o.value = c;
+        o.textContent = c || "--";
+        s.appendChild(o);
+      });
+      return s;
+    }
+
+    if (field.type === "textarea") {
+      return document.createElement("textarea");
+    }
+    
+    const i = document.createElement("input");
+    i.type = field.type || "text";
+    return i;
+  }
+
+  function addRow(copyFrom = null) {
+    const tr = document.createElement("tr");
+    const fields = activeFields();
+
+    fields.forEach((f, i) => {
+      const td = document.createElement("td");
+      const el = createInput(f);
+
+      if (copyFrom) el.value = copyFrom[i]?.value || "";
+      el.addEventListener("keydown", e => handleKeys(e, tr));
+      td.appendChild(el);
+      tr.appendChild(td);
+    });
+
+    const status = document.createElement("td");
+    status.className = "status";
+    tr.appendChild(status);
+
+    document.getElementById("tableBody").appendChild(tr);
+    tr.querySelector("input,select,textarea")?.focus();
+  }
+
+  function handleKeys(e, tr) {
+    const inputs = Array.from(tr.querySelectorAll("input,select,textarea"));
+    const idx = inputs.indexOf(e.target);
+
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (e.ctrlKey) submitAll();
+      else if (inputs[idx + 1]) inputs[idx + 1].focus();
+      else addRow(inputs);
+    }
+
+    if (e.ctrlKey && e.key === "d") {
+      e.preventDefault();
+      addRow(inputs);
+    }
+  }
+
+  function submitAll() {
+    const rows = Array.from(document.querySelectorAll("#tableBody tr"));
+    const fields = activeFields();
+    const payload = [];
+
+    rows.forEach((tr, rowIdx) => {
+      const data = {};
+      tr.querySelectorAll("input,select,textarea").forEach((el, i) => {
+        data[fields[i].key] = el.value;
+      });
+      payload.push(data);
+    });
+
+    fetch("{% url 'operator-bulk-create' %}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}"
+      },
+      body: JSON.stringify({ entries: payload })
+    })
+    .then(r => r.json())
+    .then(handleSaveResponse);
+  }
+
+  function handleSaveResponse(data) {
+    const rows = Array.from(document.querySelectorAll("#tableBody tr"));
+
+    data.created.forEach(r => {
+      rows[r.row]?.remove();
+    });
+
+    data.errors.forEach(r => {
+      const tr = rows[r.row];
+      if (!tr) return;
+      tr.classList.add("invalid");
+      tr.querySelector(".status").textContent = r.error;
+      tr.querySelector(".status").className = "status err";
+    });
+
+    if (!document.querySelector("#tableBody tr")) addRow();
+  }
+
+  document.querySelectorAll(".field-selector input").forEach(cb => {
+    cb.addEventListener("change", () => {
+      renderHead();
+      document.getElementById("tableBody").innerHTML = "";
+      addRow();
+    });
+  });
+
+  renderHead();
+  addRow();
+</script>
+
+</body>
+</html>

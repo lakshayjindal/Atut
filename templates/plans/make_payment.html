@@ -115,17 +115,90 @@
         </div>
 
         <form method="post" enctype="multipart/form-data" class="payment-form card">
-            {% csrf_token %}
+    {% csrf_token %}
 
-            <label for="transaction_id">Transaction / UTR Number</label>
-            <input type="text" name="transaction_id" id="transaction_id" placeholder="Enter transaction number">
+    <!-- Promo code -->
+    <label for="promo_code">Promo Code (optional)</label>
+    <input
+        type="text"
+        name="promo_code"
+        id="promo_code"
+        placeholder="Enter promo code"
+        autocomplete="off"
+    >
+    <small id="promo-status" class="note"></small>
 
-            <div class="divider">— OR —</div>
+    <hr style="margin: 16px 0; opacity: 0.2;">
 
-            <label for="screenshot">Upload Payment Screenshot</label>
-            <input type="file" name="screenshot" id="screenshot" accept="image/*">
+    <!-- Transaction ID -->
+    <label for="transaction_id">Transaction / UTR Number</label>
+    <input
+        type="text"
+        name="transaction_id"
+        id="transaction_id"
+        placeholder="Enter transaction number"
+    >
 
-            <button type="submit" class="btn-submit">Submit Payment</button>
-        </form>
+    <div class="divider">— OR —</div>
+
+    <!-- Screenshot -->
+    <label for="screenshot">Upload Payment Screenshot</label>
+    <input
+        type="file"
+        name="screenshot"
+        id="screenshot"
+        accept="image/*"
+    >
+
+    <button type="submit" class="btn-submit">
+        Submit Payment
+    </button>
+</form>
+
     </div>
 {% endblock %}
+
+
+
+{% block extra_scripts %}
+    <script>
+const promoInput = document.getElementById("promo_code");
+const promoStatus = document.getElementById("promo-status");
+
+let promoTimeout = null;
+
+promoInput.addEventListener("input", () => {
+    clearTimeout(promoTimeout);
+    const code = promoInput.value.trim();
+
+    if (!code) {
+        promoStatus.textContent = "";
+        return;
+    }
+
+    promoStatus.textContent = "Checking promo code…";
+
+    promoTimeout = setTimeout(() => {
+        fetch(
+            `{% url 'verify_promo_code' %}?code=${encodeURIComponent(code)}&cart_value={{ plan.price }}`
+        )
+        .then(res => res.json())
+        .then(data => {
+            if (data.valid) {
+                promoStatus.textContent = "Promo code applied (subject to verification)";
+                promoStatus.style.color = "var(--color-success)";
+            } else {
+                promoStatus.textContent = "Invalid or expired promo code";
+                promoStatus.style.color = "var(--color-error)";
+            }
+        })
+        .catch(() => {
+            promoStatus.textContent = "Error validating promo code";
+            promoStatus.style.color = "var(--color-error)";
+        });
+    }, 500);
+});
+</script>
+
+{% endblock extra_scripts %}
+    

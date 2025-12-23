@@ -2,8 +2,9 @@
 from django.db import models
 from user.models import User
 from datetime import timedelta, date
-
-
+from django.utils import timezone
+from django.core.validators import MinValueValidator
+from django.conf import settings
 class PremiumPlan(models.Model):
     name = models.CharField(max_length=100, unique=True, db_index=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)  # ₹999.00
@@ -83,48 +84,6 @@ class UserSubscription(models.Model):
             return True
         return False
 
-class Payment(models.Model):
-    STATUS_CHOICES = [
-        ("pending", "Pending"),
-        ("success", "Success"),
-        ("failed", "Failed"),
-        ("review", "Under Review"),
-    ]
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="payments")
-    plan = models.ForeignKey(PremiumPlan, on_delete=models.SET_NULL, null=True, blank=True, related_name="payments")
-
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    transaction_id = models.CharField(max_length=100, blank=True, null=True, help_text="UPI/Bank Transaction ID")
-    screenshot = models.URLField(blank=True, null=True)
-
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"Payment #{self.id} - {self.user.username} - {self.plan.name if self.plan else 'No Plan'}"
-
-    # models.py
-
-    def approve(self):
-        """Mark payment approved and activate subscription."""
-        self.status = "success"
-        self.save()
-
-        subscription, created = UserSubscription.objects.get_or_create(user=self.user)
-        subscription.activate(self.plan)
-
-    def reject(self):
-        """Reject payment."""
-        self.status = "failed"
-        self.save()
-
-    class Meta:
-        ordering = ["-created_at"]
-        verbose_name = "Payment"
-        verbose_name_plural = "Payments"
-
 
 class SiteSettings(models.Model):
     qr_image = models.ImageField(upload_to="qr_codes/", blank=True, null=True)
@@ -136,3 +95,185 @@ class SiteSettings(models.Model):
 
     def __str__(self):
         return "Site Settings (QR Code)"
+    
+class PromoCode(models.Model):
+    DISCOUNT_TYPE_CHOICES = (
+        ("flat", "Flat"),
+        ("percent", "Percentage"),
+    )
+
+    code = models.CharField(
+        max_length=12,
+        unique=True,
+        db_index=True
+    )
+
+    discount_type = models.CharField(
+        max_length=10,
+        choices=DISCOUNT_TYPE_CHOICES,null=True, blank=True
+    )
+
+    discount_value = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+        null=True, blank=True
+    )
+
+    max_discount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
+
+    min_cart_value = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0
+    )
+
+    total_limit = models.BigIntegerField(
+        default=-1,
+        help_text="-1 means unlimited total usage"
+    )
+
+    per_user_limit = models.PositiveIntegerField(
+        default=1
+    )
+
+    used_count = models.PositiveBigIntegerField(default=0)
+
+    is_active = models.BooleanField(default=True)
+    is_deleted = models.BooleanField(default=False)
+
+    created_on = models.DateTimeField(auto_now_add=True)
+    expires_on = models.DateTimeField()
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["expires_on"]),
+            models.Index(fields=["is_active"]),
+        ]
+
+    def is_expired(self):
+        return self.expires_on <= timezone.now()
+
+    def can_be_used(self):
+        if self.is_deleted or not self.is_active:
+            return False
+        if self.is_expired():
+            return False
+        if self.total_limit == -1:
+            return True
+        return self.used_count < self.total_limit
+
+    def __str__(self):
+        return self.code
+    
+class PromoCodeUsage(models.Model):
+    promo = models.ForeignKey(
+        PromoCode,
+        on_delete=models.PROTECT,
+        related_name="usages"
+    )
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT
+    )
+
+    order_id = models.UUIDField()
+    cart_value = models.DecimalField(max_digits=10, decimal_places=2)
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2)
+
+    used_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["promo", "user", "order_id"],
+                name="unique_promo_use_per_order"
+            )
+        ]
+
+class Payment(models.Model):
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("review", "Under Review"),
+        ("success", "Success"),
+        ("failed", "Failed"),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="payments",
+    )
+
+    plan = models.ForeignKey(
+        PremiumPlan,
+        on_delete=models.PROTECT,
+        related_name="payments",
+        null=True
+    )
+
+    promo = models.ForeignKey(
+        PromoCode,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="payments",
+    )
+
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text="Base plan price at time of payment",
+    )
+
+    discount_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        help_text="Discount applied via promo code",
+        null=True, blank=True
+    )
+
+    final_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text="Final payable amount after discount",
+        null=True, blank=True
+    )
+
+    transaction_id = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="UPI / Bank Transaction ID",
+    )
+
+    screenshot = models.URLField(
+        blank=True,
+        null=True,
+        help_text="Uploaded payment proof URL",
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="pending",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Payment"
+        verbose_name_plural = "Payments"
+
+    def __str__(self):
+        plan_name = self.plan.name if self.plan else "No Plan"
+        return f"Payment #{self.id} - {self.user} - {plan_name}"
