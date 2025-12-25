@@ -311,6 +311,40 @@
   .img-close:hover {
     color: #ffcccc;
   }
+  .blur {
+  filter: blur(12px);
+  pointer-events: none;
+  user-select: none;
+}
+.toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: #333;
+  color: #fff;
+  padding: 14px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  box-shadow: var(--shadow-soft);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s ease;
+  z-index: 99999;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast.error {
+  background: #b50000;
+}
+
+.toast.success {
+  background: #16a34a;
+}
+
 </style>
 {% endblock extra_head %} {% block content %}
 <div class="container">
@@ -385,9 +419,13 @@
       {% if connected %}
       <a href="{% url 'chat' profile.user.id %}" class="btn primary">Chat</a>
       {% else %}
-      <a href="{% url 'send_request' profile.user.id %}" class="btn primary"
-        >Connect</a
-      >
+     <button
+  class="btn primary btn-connect"
+  onclick="sendRequest('{{ profile.user.id }}', this)"
+>
+  Send Request
+</button>
+
       {% endif %}
       <a href="{% url 'user_dashboard' %}" class="btn primary"
         >Back to Dashboard</a
@@ -422,11 +460,41 @@
 <div id="imageModal" class="img-modal">
   <span class="img-close" onclick="closeImageModal()">&times;</span>
 
-  <div class="img-modal-content">
+  <div class="img-modal-content" id='secure-content'>
     <div class="img-thumbs" id="thumbContainer"></div>
     <img id="mainImagePreview" class="img-main" src="" alt="" />
   </div>
 </div>
+<script>
+  function showToast(message, isError = false) {
+    const toast = document.createElement("div");
+    toast.className = `toast ${isError ? "error" : "success"}`;
+    toast.innerText = message;
+
+    document.body.appendChild(toast);
+
+    requestAnimationFrame(() => toast.classList.add("show"));
+
+    setTimeout(() => {
+      toast.classList.remove("show");
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+</script>
+<script>
+  function getCSRFToken() {
+    const name = "csrftoken";
+    const cookies = document.cookie.split(";");
+
+    for (let cookie of cookies) {
+      cookie = cookie.trim();
+      if (cookie.startsWith(name + "=")) {
+        return decodeURIComponent(cookie.substring(name.length + 1));
+      }
+    }
+    return "";
+  }
+</script>
 
 <script>
   const requestEl = document.getElementById("request");
@@ -453,7 +521,7 @@ I am Interested in {{ profile.user.username }} - {{ profile.user.first_name }} {
 Kindly Provide me the contact number for them`;
 
     navigator.clipboard.writeText(msg).then(() => {
-      alert("📋 Message copied! Paste it in WhatsApp if not auto-filled.");
+      showToast("Message copied to clipboard");
     });
   }
 </script>
@@ -511,6 +579,52 @@ Kindly Provide me the contact number for them`;
   window.addEventListener("focus", () => {
     document.getElementById("secure-content").classList.remove("blur");
   });
+
+</script>
+<script>
+  async function sendRequest(toUserId, btn) {
+    if (btn.disabled) return;
+
+    btn.disabled = true;
+    const originalText = btn.innerText;
+    btn.innerText = "Sending...";
+
+    try {
+      const url = "{% url 'send_request' 0 %}".replace("0", toUserId);
+
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCSRFToken(),
+          "X-Requested-With": "XMLHttpRequest",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({}),
+      });
+
+      let json = null;
+      try {
+        json = await res.json();
+      } catch (e) {}
+
+      if (res.ok) {
+        btn.innerText = "Requested ✓";
+        btn.style.pointerEvents = "none";
+        btn.style.opacity = "0.75";
+        showToast(json?.message || "Request sent successfully");
+      } else {
+        showToast(json?.message || "Something went wrong", true);
+        btn.disabled = false;
+        btn.innerText = originalText;
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Network error. Please try again.", true);
+      btn.disabled = false;
+      btn.innerText = originalText;
+    }
+  }
 </script>
 
 {% endblock content %}

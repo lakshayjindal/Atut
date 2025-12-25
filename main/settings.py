@@ -70,8 +70,8 @@ WSGI_APPLICATION = 'main.wsgi.application'
 
 # === DATABASE ===
 
-
-DATABASES = {
+if os.environ.get("DJANGO_ENV", "") == "prod":
+    DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql_psycopg2",
             "NAME": "atutvidhan",
@@ -81,6 +81,13 @@ DATABASES = {
             "PORT": "",
         }
     }
+else:
+    DATABASES = {
+        "default": dj_database_url.parse(
+            "postgresql://postgres:37Y4ArvHQFggBxvQ@db.bcdanhsorldyzrijjkdn.supabase.co:5432/postgres"
+        )
+    }
+
 
 # === CHANNELS ===
 CHANNEL_LAYERS = {
