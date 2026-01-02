@@ -83,9 +83,10 @@ if os.environ.get("DJANGO_ENV", "") == "prod":
     }
 else:
     DATABASES = {
-        "default": dj_database_url.parse(
-            "postgresql://postgres:37Y4ArvHQFggBxvQ@db.bcdanhsorldyzrijjkdn.supabase.co:5432/postgres"
-        )
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
 
 
@@ -138,6 +139,7 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # === SECURITY / CSRF ===
 CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8000",
     "https://*.railway.app",
     "https://*.up.railway.app",
     "https://*.onrender.com",
