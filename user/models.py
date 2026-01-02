@@ -58,6 +58,14 @@ class Profile(models.Model):
         ('Other', 'Other'),
     ]
 
+    MARITAL_STATUS_CHOICES = [
+    ('Never Married', 'Never Married'),
+    ('Married', 'Married'),
+    ('Divorced', 'Divorced'),
+    ('Awaiting Divorce', 'Awaiting Divorce'),
+    ('Annulled', 'Annulled'),
+    ('Widowed', 'Widowed'),
+]
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
 
     # Basic Details
@@ -88,10 +96,15 @@ class Profile(models.Model):
     looking_for = models.CharField(choices=LOOKING_FOR_CHOICES, null=True, blank=True, db_index=True, max_length=20)
     bio = models.TextField(blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
-    marital_status = models.CharField(max_length=20,
-        choices=[('Single', 'Single'), ('Married', 'Married')],
-        null=True, blank=True, db_index=True
-    )
+
+    marital_status = models.CharField(
+    max_length=20,
+    choices=MARITAL_STATUS_CHOICES,
+    null=True,
+    blank=True,
+    db_index=True
+)
+
 
     created_at = models.DateTimeField(auto_now_add=True)
 
