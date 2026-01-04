@@ -1,22 +1,3 @@
-Absolutely. This is the right move 👍
-Below is a **clean, professional, client-ready Markdown document** you can drop in as:
-
-```
-DEPLOYMENT_AND_OPERATIONS_GUIDE.md
-```
-
-It is:
-
-* Neutral, enterprise-style tone
-* Explicit with commands
-* No internal script names mentioned
-* Clear separation of concerns
-* Safe from scope creep
-
-You can copy-paste this **as is**.
-
----
-
 # Deployment & Operations Guide
 
 **Project:** Atut Vidhan
@@ -277,7 +258,7 @@ crontab -e
 
 ---
 
-## 6. Scope Clarification
+## 5. Scope Clarification
 
 This document covers the current deployment and operational setup.
 
@@ -292,8 +273,93 @@ are not included and can be implemented separately.
 
 ---
 
-## 7. Support
+## 6. Support
 
 For deployment-related clarifications or enhancements, changes should be reviewed and planned before implementation.
 
 ---
+
+## 7. Directory Info
+
+There are many directories in this project 
+
+```
+.
+├── connect                        // Real-time communication module (chat, messaging, WebSocket consumers)
+│   ├── admin.py                   // Django admin registrations for connect app
+│   ├── apps.py                    // App configuration
+│   ├── consumers.py               // WebSocket consumers (Django Channels)
+│   ├── migrations/                // Database migrations for chat and messaging models
+│   ├── models.py                  // Chat-related database models
+│   ├── routing.py                 // WebSocket routing configuration
+│   ├── urls.py                    // HTTP URL routes for connect app
+│   └── views.py                   // HTTP views for messaging features
+│
+├── main                           // Core project configuration and entry point
+│   ├── asgi.py                    // ASGI application entry point
+│   ├── consumers.py               // Project-level WebSocket consumers
+│   ├── settings.py                // Global Django settings
+│   ├── urls.py                    // Root URL configuration
+│   ├── views.py                   // Global views (landing, redirects, etc.)
+│   ├── wsgi.py                    // WSGI entry point (if needed)
+│   └── static/                    // App-level static assets
+│       └── user/                  // User-facing CSS, images, and assets
+│
+├── manage.py                      // Django management command entry point
+│
+├── media                          // User-uploaded files (runtime data)
+│   ├── profile_images/            // Uploaded user profile images and documents
+│   └── qr_codes/                  // Generated QR codes
+│
+├── plans                          // Subscription, payment, and premium features
+│   ├── admin.py                   // Admin configuration for plans and payments
+│   ├── decorators.py              // Access control decorators (premium checks, etc.)
+│   ├── models.py                  // Plan, payment, promo code, and feature models
+│   ├── services/                  // Business logic layer (e.g., promo code handling)
+│   ├── static/                    // Static JS/CSS related to plans and admin tools
+│   ├── templatetags/              // Custom Django template tags
+│   ├── urls.py                    // Routes for plan-related pages
+│   └── views.py                   // Views handling subscriptions and payments
+│
+├── search                         // Search and filtering functionality
+│   ├── models.py                  // Search-related models (if any)
+│   ├── templatetags/              // Custom filters for query handling
+│   ├── urls.py                    // Search endpoints
+│   └── views.py                   // Search result handling
+│
+├── siteadmin                      // Custom internal admin and operator tools
+│   ├── admin.py                   // Admin registrations
+│   ├── feild_config.py            // Dynamic field configurations
+│   ├── forms.py                   // Admin/operator forms
+│   ├── models.py                  // Operator and admin-specific models
+│   ├── urls.py                    // Admin tool routes
+│   └── views.py                   // Views for bulk entry, content management, etc.
+│
+├── staticfiles                    // Collected static files (generated in production)
+│   ├── admin/                     // Django admin static assets
+│   ├── assets/                    // Shared compiled assets
+│   └── user/                      // User-facing static files
+│
+├── templates                      // HTML templates
+│   ├── admin/                     // Custom admin templates and dashboards
+│   ├── emails/                    // Email templates (OTP, notifications)
+│   ├── plans/                     // Subscription and payment pages
+│   ├── siteadmin/                 // Operator/admin interface templates
+│   └── user/                      // Public and authenticated user-facing pages
+│
+├── user                           // User accounts and profile management
+│   ├── admin.py                   // Admin configuration for user models
+│   ├── context_processors.py      // Global template context helpers
+│   ├── email_utils.py             // Email and OTP utilities
+│   ├── forms.py                   // Authentication and profile forms
+│   ├── models.py                  // Custom user and profile models
+│   ├── urls.py                    // User-related routes
+│   ├── utils.py                   // Helper utilities
+│   └── views.py                   // Authentication, profile, and dashboard views
+│
+├── requirements.txt               // Python dependencies
+├── pyproject.toml                 // Project metadata and tooling configuration
+├── railway.json                   // Deployment configuration (Railway)
+├── readme.md                     // Project documentation
+└── db.sqlite3                     // Local development database (not used in production)
+```

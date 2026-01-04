@@ -344,6 +344,49 @@
 .toast.success {
   background: #16a34a;
 }
+/* Disable text & image selection */
+body, img, .container {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Disable image dragging */
+img {
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+/* Allow clicks where needed */
+.profile-image,
+.img-thumbs img,
+.btn,
+#reqContact {
+  pointer-events: auto;
+}
+
+.watermark {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(0,0,0,0.08),
+    rgba(0,0,0,0.08) 1px,
+    transparent 1px,
+    transparent 40px
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 42px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.12);
+  z-index: 9998;
+  text-transform: uppercase;
+}
+
 
 </style>
 {% endblock extra_head %} {% block content %}
@@ -566,21 +609,35 @@ Kindly Provide me the contact number for them`;
 </script>
 
 <script>
+  const secureArea = document.getElementById("secure-content");
+
+  function blurSecure() {
+    secureArea.classList.add("blur");
+  }
+
+  function unblurSecure() {
+    secureArea.classList.remove("blur");
+  }
+
+  // Tab switch / minimize
   document.addEventListener("visibilitychange", () => {
-    document
-      .getElementById("secure-content")
-      .classList.toggle("blur", document.hidden);
+    document.hidden ? blurSecure() : unblurSecure();
   });
 
-  window.addEventListener("blur", () => {
-    document.getElementById("secure-content").classList.add("blur");
-  });
+  // Window loses focus (PrintScreen, Alt+Tab, OS screenshot tools)
+  window.addEventListener("blur", blurSecure);
+  window.addEventListener("focus", unblurSecure);
 
-  window.addEventListener("focus", () => {
-    document.getElementById("secure-content").classList.remove("blur");
+  // Detect PrintScreen key
+  document.addEventListener("keyup", e => {
+    if (e.key === "PrintScreen") {
+      blurSecure();
+      showToast("Screenshots are not allowed", true);
+      setTimeout(unblurSecure, 2000);
+    }
   });
-
 </script>
+
 <script>
   async function sendRequest(toUserId, btn) {
     if (btn.disabled) return;
@@ -626,5 +683,24 @@ Kindly Provide me the contact number for them`;
     }
   }
 </script>
+
+<script>
+  // Disable right-click
+  document.addEventListener("contextmenu", e => e.preventDefault());
+
+  // Disable common save / inspect shortcuts
+  document.addEventListener("keydown", e => {
+    const blocked =
+      (e.ctrlKey && ["s", "u", "c", "x"].includes(e.key.toLowerCase())) ||
+      (e.ctrlKey && e.shiftKey && ["i", "j"].includes(e.key.toLowerCase())) ||
+      e.key === "F12";
+
+    if (blocked) {
+      e.preventDefault();
+      showToast("Action disabled for security", true);
+    }
+  });
+</script>
+
 
 {% endblock content %}
