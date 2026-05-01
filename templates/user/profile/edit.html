@@ -1,298 +1,415 @@
 {% extends '../base.html' %}
 {% load static %}
+{% block title %}Edit Profile | Vivah Sutra®{% endblock %}
 
 {% block extra_head %}
-    <style>
-        :root {
-            --bg: #FFF8F2; /* Ivory Blush */
-            --panel: #ffffff; /* Pure white panel */
-            --accent: #D72638; /* Royal Rose */
-            --accent-dark: #a81d2c; /* Darker rose */
-            --accent-soft: #FFECE8; /* Soft rose background */
-            --header-grad-1: #F4C95D; /* Golden Sand */
-            --header-grad-2: #FFB7A1; /* Peach Bloom */
-            --border: #f0e6db; /* Champagne Mist */
-            --muted: #7D6E63; /* Dusty Taupe */
-            --text-dark: #2F2F2F; /* Charcoal Silk */
-            --text: #4a3f39; /* Warm gray-brown */
-            --shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-        }
+<style>
+  /* ── Override base main padding — use full width ── */
+  .vs-main { padding: clamp(14px, 2vw, 24px) clamp(16px, 3vw, 40px); }
 
-        body {
-            font-family: "Inter", "Segoe UI", sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-        }
+  .pe-wrap {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
 
-        .profile-edit-container {
-            max-width: 920px;
-            margin: 50px auto;
-            background: var(--panel);
-            border-radius: 20px;
-            padding: 50px;
-            box-shadow: var(--shadow);
-            animation: fadeIn 0.5s ease-in-out;
-        }
+  /* ── Reset the global form styles that constrain width ── */
+  #editForm {
+    display: block;
+    max-width: none;
+    width: 100%;
+    background: none;
+    box-shadow: none;
+    padding: 0;
+    gap: 0;
+    border-radius: 0;
+  }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(15px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+  /* ── Page header ── */
+  .pe-page-header {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+    margin-bottom: 24px;
+  }
+  .pe-page-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.3rem, 3vw, 1.7rem);
+    font-weight: 700; color: var(--text-1);
+  }
+  .pe-page-header p { font-size: .84rem; color: var(--text-2); margin-top: 2px; }
 
-        h2 {
-            text-align: center;
-            font-size: 2rem;
-            color: var(--accent);
-            background: linear-gradient(90deg, var(--header-grad-1), var(--header-grad-2));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 40px;
-        }
+  /* ── Section cards ── */
+  .pe-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px 24px;
+    margin-bottom: 18px;
+    box-shadow: var(--shadow-xs);
+  }
+  .pe-section-title {
+    font-size: .72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .8px;
+    color: var(--brand); margin-bottom: 18px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .pe-section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-        /* ===== Photo Grid ===== */
-        .photo-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 18px;
-            justify-items: center;
-            margin-bottom: 40px;
-        }
+  /* ── Photo grid ── */
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 14px;
+  }
+  @media (max-width: 900px) { .photo-grid { grid-template-columns: repeat(4, 1fr); } }
+  @media (max-width: 560px) { .photo-grid { grid-template-columns: repeat(3, 1fr); } }
 
-        .photo-slot {
-            width: 150px;
-            height: 150px;
-            border: 2px dashed var(--border);
-            border-radius: 16px;
-            background: var(--accent-soft);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-            transition: border 0.3s, transform 0.2s;
-            cursor: pointer;
-        }
+  .photo-slot {
+    aspect-ratio: 1;
+    border: 2px dashed var(--border-med);
+    border-radius: 12px;
+    background: var(--surface-2);
+    display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+    cursor: pointer;
+    transition: border-color .2s, background .2s, transform .2s;
+  }
+  .photo-slot:hover { border-color: var(--brand); background: var(--brand-tint); transform: translateY(-2px); }
+  .photo-slot.has-image { border-style: solid; border-color: var(--border); }
 
-        .photo-slot:hover {
-            border-color: var(--accent);
-            transform: translateY(-2px);
-        }
+  .photo-slot img {
+    width: 100%; height: 100%;
+    object-fit: cover; border-radius: 10px;
+    display: block;
+  }
 
-        .slot-image {
-            width: 100%;
-            height: 100%;
-            border-radius: 16px;
-        }
+  .slot-add-icon {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    color: var(--text-3); pointer-events: none;
+  }
+  .slot-add-icon i { font-size: 1.4rem; }
+  .slot-add-icon span { font-size: .72rem; font-weight: 500; }
 
-        .plus-icon {
-            font-size: 2.2rem;
-            color: var(--accent);
-            font-weight: bold;
-        }
+  .slot-delete {
+    position: absolute; top: 6px; right: 6px;
+    width: 26px; height: 26px;
+    background: rgba(0,0,0,.55); color: #fff;
+    border: none; border-radius: 50%;
+    font-size: .75rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .2s; z-index: 2;
+  }
+  .slot-delete:hover { background: var(--error); }
 
-        .delete-btn {
-            text-decoration: none;
-            position: absolute;
-            top: 6px;
-            right: 6px;
-            background: rgba(0, 0, 0, 0.5);
-            color: #fff;
-            border: none;
-            border-radius: 50%;
-            text-align: center;
-            width: 26px;
-            height: 26px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
+  /* ── Form fields ── */
+  .pe-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+  @media (max-width: 900px) { .pe-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .pe-grid { grid-template-columns: 1fr; } }
 
-        .delete-btn:hover {
-            background: var(--accent-dark);
-        }
+  .pe-field { display: flex; flex-direction: column; gap: 5px; }
+  .pe-field label {
+    font-size: .74rem; font-weight: 700;
+    color: var(--text-2); text-transform: uppercase;
+    letter-spacing: .4px;
+  }
+  .pe-field input,
+  .pe-field select,
+  .pe-field textarea {
+    padding: 10px 13px;
+    border: 1.5px solid var(--border-med);
+    border-radius: 9px; font-size: .9rem;
+    background: var(--bg); color: var(--text-1);
+    font-family: var(--font-body);
+    transition: border-color .18s, box-shadow .18s;
+    width: 100%;
+  }
+  .pe-field input:focus,
+  .pe-field select:focus,
+  .pe-field textarea:focus {
+    outline: none; border-color: var(--brand);
+    box-shadow: 0 0 0 3px var(--brand-glow);
+    background: var(--surface);
+  }
+  .pe-field textarea { resize: vertical; min-height: 90px; }
+  .pe-field .field-error {
+    font-size: .76rem; color: var(--error);
+    display: flex; align-items: center; gap: 4px;
+  }
 
-        /* ===== Editable Fields ===== */
-        .editable-section {
-            display: grid;
-            gap: 25px;
-        }
+  /* ── Action bar ── */
+  .pe-actions {
+    display: flex; align-items: center; justify-content: flex-end;
+    gap: 12px; flex-wrap: wrap;
+    padding-top: 8px;
+  }
+  .pe-save-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 28px;
+    background: var(--brand); color: #fff;
+    border: none; border-radius: 10px;
+    font-size: .95rem; font-weight: 700;
+    cursor: pointer; transition: var(--ease-out);
+    font-family: var(--font-body);
+  }
+  .pe-save-btn:hover { background: var(--brand-dark); transform: translateY(-1px); box-shadow: 0 4px 14px var(--brand-glow); }
+  .pe-save-btn:active { transform: translateY(0); }
 
-        .editable-field {
-            display: flex;
-            flex-direction: column;
-        }
+  .pe-cancel-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 11px 22px;
+    background: var(--surface-2); color: var(--text-2);
+    border: 1.5px solid var(--border-med); border-radius: 10px;
+    font-size: .875rem; font-weight: 600;
+    cursor: pointer; text-decoration: none;
+    transition: var(--ease); font-family: var(--font-body);
+  }
+  .pe-cancel-btn:hover { background: var(--border); color: var(--text-1); }
 
-        .editable-field label {
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--text-dark);
-        }
+  /* ── Toast ── */
+  #peToast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--text-1); color: #fff;
+    padding: 12px 18px; border-radius: 12px;
+    font-size: .875rem; font-weight: 500;
+    opacity: 0; pointer-events: none;
+    transform: translateY(8px);
+    transition: all .3s; z-index: 9999;
+    box-shadow: var(--shadow-lg);
+  }
+  #peToast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  #peToast.success { background: var(--emerald); }
+  #peToast.error   { background: var(--error); }
 
-        input[type="text"],
-        input[type="date"],
-        select,
-        textarea {
-            padding: 12px 15px;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            background: var(--accent-soft);
-            font-size: 1rem;
-            transition: border 0.2s, box-shadow 0.2s;
-        }
-
-        input:focus,
-        select:focus,
-        textarea:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(215, 38, 56, 0.15);
-            outline: none;
-        }
-
-        .save-button {
-            display: block;
-            margin: 40px auto 0;
-            padding: 14px 32px;
-            font-size: 1rem;
-            border: none;
-            background: var(--accent);
-            color: #fff;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
-        }
-
-        .save-button:hover {
-            background: var(--accent-dark);
-            transform: translateY(-2px);
-        }
-
-        .error {
-            color: #d72638;
-            font-size: 0.9em;
-            margin-top: 4px;
-        }
-    </style>
-{% endblock extra_head %}
+  @media (max-width: 600px) {
+    .pe-section { padding: 16px; }
+    .pe-actions { justify-content: stretch; }
+    .pe-save-btn, .pe-cancel-btn { flex: 1; justify-content: center; }
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-    <div class="profile-edit-container">
-        <h2>Edit Profile</h2>
-        <form method="POST" enctype="multipart/form-data" class="edit-form">
-            {% csrf_token %}
+<div id="peToast"></div>
+<div class="pe-wrap">
 
-            <!-- Photo Grid -->
-            <div class="photo-grid">
-                {% for pic in pictures %}
-                    <div class="photo-slot">
-                        {% if pic %}
-                            <label class="upload-slot">
-                                <img src="{{ pic.picture_url }}" alt="User photo" class="photo-preview slot-image">
-                                <input type="file" name="photos_{{ forloop.counter0 }}" accept="image/*" hidden
-                                       onchange="previewSlot(this)">
-                                <a onclick="deleteSlot({{ pic.id }}, this)" class="delete-btn">✖</a>
-                            </label>
-                        {% else %}
-                            <label class="upload-slot">
-                                <span class="plus-icon">+</span>
-                                <input type="file" name="photos_{{ forloop.counter0 }}" accept="image/*" hidden
-                                       onchange="previewSlot(this)">
-                            </label>
-                        {% endif %}
-                    </div>
-                {% endfor %}
+  <form method="POST" enctype="multipart/form-data" id="editForm">
+    {% csrf_token %}
 
-            </div>
-
-            <!-- Profile Fields -->
-            <div class="editable-section">
-                {% for field in form %}
-                    {% if field.name != "image" %}
-                        <div class="editable-field">
-                            <label>{{ field.label }}</label>
-                            {{ field }}
-                            {% if field.errors %}
-                                <div class="error">{{ field.errors|striptags }}</div>
-                            {% endif %}
-                        </div>
-                    {% endif %}
-                {% endfor %}
-            </div>
-
-            <button type="submit" class="save-button">💾 Save Changes</button>
-        </form>
+    <!-- Page header -->
+    <div class="pe-page-header">
+      <div>
+        <h1>Edit Profile</h1>
+        <p>Keep your profile up to date to get better matches</p>
+      </div>
+      <div class="pe-actions" style="margin-bottom:0;padding-top:0;">
+        <a href="{% url 'view_profile' %}" class="pe-cancel-btn">
+          <i class="fas fa-times"></i> Cancel
+        </a>
+        <button type="submit" class="pe-save-btn">
+          <i class="fas fa-check"></i> Save Changes
+        </button>
+      </div>
     </div>
 
-    <script>
-        function previewSlot(input) {
-            const file = input.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    const slot = input.closest(".photo-slot");
+    <!-- Photos -->
+    <div class="pe-section">
+      <div class="pe-section-title"><i class="fas fa-images"></i> Photos <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-3);font-size:.7rem;">(up to 6)</span></div>
+      <div class="photo-grid">
+        {% for pic in pictures %}
+        <div class="photo-slot {% if pic %}has-image{% endif %}" id="slot-{{ forloop.counter0 }}">
+          {% if pic %}
+            <img src="{{ pic.picture_url }}" alt="Photo {{ forloop.counter }}" class="slot-img">
+            <button type="button" class="slot-delete" onclick="deletePhoto({{ pic.id }}, {{ forloop.counter0 }})" title="Remove photo">
+              <i class="fas fa-times"></i>
+            </button>
+          {% else %}
+            <label style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+              <div class="slot-add-icon">
+                <i class="fas fa-plus"></i>
+                <span>Add photo</span>
+              </div>
+              <input type="file" name="photos_{{ forloop.counter0 }}" accept="image/*" hidden onchange="previewPhoto(this, {{ forloop.counter0 }})">
+            </label>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
 
-                    // Add preview image if not already there
-                    let img = slot.querySelector('.slot-image');
-                    if (!img) {
-                        img = document.createElement('img');
-                        img.className = 'slot-image';
-                        slot.appendChild(img);
-                    }
+    <!-- Personal Info -->
+    <div class="pe-section">
+      <div class="pe-section-title"><i class="fas fa-user"></i> Personal Info</div>
+      <div class="pe-grid">
+        {% for field in form %}{% if field.name == 'full_name' or field.name == 'gender' or field.name == 'date_of_birth' or field.name == 'height' or field.name == 'marital_status' or field.name == 'looking_for' %}
+          <div class="pe-field">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<div class="field-error"><i class="fas fa-exclamation-circle"></i> {{ field.errors|striptags }}</div>{% endif %}
+          </div>
+        {% endif %}{% endfor %}
+      </div>
+      <!-- Bio spans full width below the grid -->
+      {% for field in form %}{% if field.name == 'bio' %}
+      <div class="pe-field" style="margin-top:16px;">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<div class="field-error"><i class="fas fa-exclamation-circle"></i> {{ field.errors|striptags }}</div>{% endif %}
+      </div>
+      {% endif %}{% endfor %}
+    </div>
 
-                    img.src = e.target.result;
+    <!-- Location -->
+    <div class="pe-section">
+      <div class="pe-section-title"><i class="fas fa-map-marker-alt"></i> Location</div>
+      <div class="pe-grid">
+        {% for field in form %}{% if field.name == 'city' or field.name == 'state' or field.name == 'country' %}
+          <div class="pe-field">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<div class="field-error"><i class="fas fa-exclamation-circle"></i> {{ field.errors|striptags }}</div>{% endif %}
+          </div>
+        {% endif %}{% endfor %}
+      </div>
+    </div>
 
-                    // Show delete button
-                    let deleteBtn = slot.querySelector('.delete-btn');
-                    if (!deleteBtn) {
-                        deleteBtn = document.createElement('button');
-                        deleteBtn.type = 'button';
-                        deleteBtn.className = 'delete-btn';
-                        deleteBtn.innerHTML = '✖';
-                        deleteBtn.onclick = () => removePreview(input);
-                        slot.appendChild(deleteBtn);
-                    }
-                };
-                reader.readAsDataURL(file);
-            }
-        }
+    <!-- Education & Career -->
+    <div class="pe-section">
+      <div class="pe-section-title"><i class="fas fa-graduation-cap"></i> Education &amp; Career</div>
+      <div class="pe-grid">
+        {% for field in form %}{% if field.name == 'education' or field.name == 'profession' or field.name == 'occupation' or field.name == 'income' %}
+          <div class="pe-field">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<div class="field-error"><i class="fas fa-exclamation-circle"></i> {{ field.errors|striptags }}</div>{% endif %}
+          </div>
+        {% endif %}{% endfor %}
+      </div>
+    </div>
 
+    <!-- Family & Culture -->
+    <div class="pe-section">
+      <div class="pe-section-title"><i class="fas fa-home"></i> Family &amp; Culture</div>
+      <div class="pe-grid">
+        {% for field in form %}{% if field.name == 'religion' or field.name == 'caste' or field.name == 'gotra' or field.name == 'mother_tongue' %}
+          <div class="pe-field">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<div class="field-error"><i class="fas fa-exclamation-circle"></i> {{ field.errors|striptags }}</div>{% endif %}
+          </div>
+        {% endif %}{% endfor %}
+      </div>
+    </div>
 
-        function removePreview(input) {
-            const slot = input.closest(".photo-slot");
+    <!-- Contact -->
+    <div class="pe-section">
+      <div class="pe-section-title"><i class="fas fa-phone"></i> Contact</div>
+      <div class="pe-grid">
+        {% for field in form %}{% if field.name == 'phone1' or field.name == 'phone2' %}
+          <div class="pe-field">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<div class="field-error"><i class="fas fa-exclamation-circle"></i> {{ field.errors|striptags }}</div>{% endif %}
+          </div>
+        {% endif %}{% endfor %}
+      </div>
+    </div>
 
-            // Clear the file input value
-            input.value = '';
+    <!-- Any remaining fields not explicitly placed above -->
+    {% for field in form %}
+      {% if field.name != 'full_name' and field.name != 'gender' and field.name != 'date_of_birth' and field.name != 'height' and field.name != 'marital_status' and field.name != 'looking_for' and field.name != 'bio' and field.name != 'city' and field.name != 'state' and field.name != 'country' and field.name != 'education' and field.name != 'profession' and field.name != 'occupation' and field.name != 'income' and field.name != 'religion' and field.name != 'caste' and field.name != 'gotra' and field.name != 'mother_tongue' and field.name != 'phone1' and field.name != 'phone2' and field.name != 'image' %}
+      <div class="pe-section">
+        <div class="pe-field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}<div class="field-error"><i class="fas fa-exclamation-circle"></i> {{ field.errors|striptags }}</div>{% endif %}
+        </div>
+      </div>
+      {% endif %}
+    {% endfor %}
 
-            // Remove preview image & delete button
-            const img = slot.querySelector('.slot-image');
-            if (img) img.remove();
+    <!-- Bottom save bar -->
+    <div class="pe-actions">
+      <a href="{% url 'view_profile' %}" class="pe-cancel-btn">
+        <i class="fas fa-times"></i> Cancel
+      </a>
+      <button type="submit" class="pe-save-btn">
+        <i class="fas fa-check"></i> Save Changes
+      </button>
+    </div>
 
-            const deleteBtn = slot.querySelector('.delete-btn');
-            if (deleteBtn) deleteBtn.remove();
-        }
+  </form>
+</div>
 
+<script>
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('peToast');
+    t.textContent = msg;
+    t.className = type;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
 
-        function deleteSlot(pictureId, btn) {
-            if (!confirm("Delete this photo?")) return;
-            let fetchUrl ="{% url 'delete-picture' 0 %}".replace(0, pictureId);
-            fetch(fetchUrl, {
-                method: "POST",
-                headers: {"X-CSRFToken": "{{ csrf_token }}"}
-            }).then(res => {
-                if (res.ok) {
-                    const slot = btn.closest(".photo-slot");
-                    slot.innerHTML = `
-                <label class="upload-slot">
-                    <span class="plus-icon">+</span>
-                    <input type="file" name="photos" accept="image/*" hidden onchange="previewSlot(this)">
-                </label>`;
-                } else alert("Failed to delete photo.");
-            });
-        }
-    </script>
+  function getCSRF() {
+    return document.cookie.split('; ').reduce((acc, c) => {
+      const [k, v] = c.split('=');
+      return k === 'csrftoken' ? decodeURIComponent(v) : acc;
+    }, '');
+  }
+
+  function previewPhoto(input, slotIndex) {
+    const file = input.files[0];
+    if (!file) return;
+    const slot = document.getElementById('slot-' + slotIndex);
+    const reader = new FileReader();
+    reader.onload = e => {
+      slot.classList.add('has-image');
+      slot.innerHTML = `
+        <img src="${e.target.result}" alt="Preview" class="slot-img" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">
+        <button type="button" class="slot-delete" onclick="clearPreview(${slotIndex})" title="Remove">
+          <i class="fas fa-times"></i>
+        </button>
+        <input type="file" name="photos_${slotIndex}" accept="image/*" hidden>
+      `;
+      // Re-assign the file to the new hidden input
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      slot.querySelector('input[type=file]').files = dt.files;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearPreview(slotIndex) {
+    const slot = document.getElementById('slot-' + slotIndex);
+    slot.classList.remove('has-image');
+    slot.innerHTML = `
+      <label style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+        <div class="slot-add-icon">
+          <i class="fas fa-plus"></i>
+          <span>Add photo</span>
+        </div>
+        <input type="file" name="photos_${slotIndex}" accept="image/*" hidden onchange="previewPhoto(this, ${slotIndex})">
+      </label>
+    `;
+  }
+
+  function deletePhoto(picId, slotIndex) {
+    if (!confirm('Remove this photo?')) return;
+    const url = "{% url 'delete-picture' 0 %}".replace('0', picId);
+    fetch(url, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCSRF() }
+    }).then(res => {
+      if (res.ok) {
+        clearPreview(slotIndex);
+        showToast('Photo removed');
+      } else {
+        showToast('Failed to remove photo', 'error');
+      }
+    }).catch(() => showToast('Network error', 'error'));
+  }
+</script>
 {% endblock %}

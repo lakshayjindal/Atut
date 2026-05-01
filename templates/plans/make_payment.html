@@ -1,204 +1,218 @@
 {% extends "../user/base.html" %}
+{% load static %}
+{% block title %}Make Payment | Vivah Sutra®{% endblock %}
 
 {% block extra_head %}
-    <style>
-        .payment-container {
-            max-width: 600px;
-            margin: 30px auto;
-            padding: 20px;
-            color: var(--color-text-primary);
-        }
+<style>
+  .pay-wrap { max-width: 600px; margin: 0 auto; }
 
-        .page-title {
-            text-align: center;
-            margin-bottom: 25px;
-            color: var(--color-accent-1);
-            font-size: 1.8rem;
-        }
+  .pay-header {
+    text-align: center; margin-bottom: 24px;
+  }
+  .pay-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.3rem, 3vw, 1.7rem);
+    color: var(--text-1); margin-bottom: 6px;
+  }
+  .pay-header p { font-size: .875rem; color: var(--text-2); }
 
-        .card {
-            background: var(--color-primary-bg);
-            border: 1px solid var(--color-accent-2);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            text-align: center;
-        }
+  .pay-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px;
+    margin-bottom: 18px;
+    box-shadow: var(--shadow-xs);
+  }
 
-        .plan-name {
-            font-size: 1.3rem;
-            color: var(--color-accent-1);
-        }
+  .pay-card-title {
+    font-size: .76rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .7px;
+    color: var(--rose); margin-bottom: 14px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .pay-card-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-        .plan-price {
-            font-size: 1.1rem;
-            color: var(--color-highlight);
-            margin: 8px 0;
-        }
+  /* Plan summary */
+  .plan-summary {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px;
+  }
+  .plan-summary .plan-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem; font-weight: 700; color: var(--text-1);
+  }
+  .plan-summary .plan-price {
+    font-size: 1.4rem; font-weight: 700; color: var(--rose);
+  }
+  .plan-summary .plan-period { font-size: .8rem; color: var(--text-3); }
 
-        .qr-code {
-            border: 2px solid var(--color-accent-2);
-            border-radius: 10px;
-            margin: 10px 0;
-        }
+  /* QR code */
+  .qr-wrap { text-align: center; }
+  .qr-wrap img {
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    max-width: 200px; margin: 0 auto 10px;
+    display: block;
+  }
+  .qr-note { font-size: .82rem; color: var(--text-2); }
 
-        .note {
-            font-size: 0.9rem;
-            color: var(--color-text-secondary);
-        }
+  /* Form */
+  .pay-form { display: flex; flex-direction: column; gap: 14px; }
+  .field-group { display: flex; flex-direction: column; gap: 5px; }
+  .field-group label { font-size: .8rem; font-weight: 600; color: var(--text-2); }
+  .field-group input {
+    padding: 11px 14px;
+    border: 1.5px solid var(--border-med);
+    border-radius: 10px; font-size: .9rem;
+    background: var(--bg); color: var(--text-1);
+    transition: border-color .2s, box-shadow .2s;
+    width: 100%;
+  }
+  .field-group input:focus {
+    outline: none; border-color: var(--rose);
+    box-shadow: 0 0 0 3px rgba(192,65,90,.1);
+  }
 
-        .payment-form label {
-            display: block;
-            font-weight: 500;
-            text-align: left;
-            margin: 12px 0 6px;
-            color: var(--color-text-primary);
-        }
+  .pay-divider {
+    text-align: center; font-size: .8rem;
+    color: var(--text-3); position: relative;
+    margin: 4px 0;
+  }
+  .pay-divider::before, .pay-divider::after {
+    content: ''; position: absolute; top: 50%;
+    width: 42%; height: 1px; background: var(--border);
+  }
+  .pay-divider::before { left: 0; }
+  .pay-divider::after { right: 0; }
 
-        .payment-form input[type="text"],
-        .payment-form input[type="file"] {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--color-accent-2);
-            border-radius: 8px;
-            background: var(--color-secondary-bg);
-            color: var(--color-text-primary);
-            outline: none;
-            transition: border 0.3s ease;
-        }
+  .promo-status {
+    font-size: .78rem; margin-top: 3px;
+    min-height: 16px;
+  }
+  .promo-ok { color: var(--sage); }
+  .promo-err { color: var(--rose-dark); }
 
-        .payment-form input:focus {
-            border-color: var(--color-accent-1);
-        }
+  .pay-submit {
+    width: 100%; padding: 13px;
+    background: var(--rose); color: #fff;
+    border: none; border-radius: 12px;
+    font-size: .95rem; font-weight: 700;
+    cursor: pointer; transition: all .25s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .pay-submit:hover { background: var(--rose-dark); transform: translateY(-1px); }
 
-        .divider {
-            text-align: center;
-            margin: 15px 0;
-            color: var(--color-text-secondary);
-            font-size: 0.9rem;
-        }
-
-        .btn-submit {
-            background: var(--color-accent-1);
-            color: #fff;
-            padding: 14px;
-            margin-top: 15px;
-            width: 100%;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            font-weight: bold;
-            transition: background 0.3s ease;
-        }
-
-        .btn-submit:hover {
-            background: var(--color-highlight);
-        }
-    </style>
+  {% if messages %}
+  .alert-msg { padding: 10px 14px; border-radius: 8px; font-size: .83rem; margin-bottom: 12px; }
+  .alert-success { background: #eaf5ef; color: #2e7d32; border: 1px solid #c8e6c9; }
+  .alert-error { background: #fde8ec; color: var(--rose-dark); border: 1px solid #f5c6cb; }
+  .alert-info { background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
+  {% endif %}
+</style>
 {% endblock %}
+
 {% block content %}
-    <div class="payment-container">
-        <h2 class="page-title">💍 Secure Your Premium Membership</h2>
+<div class="pay-wrap">
+  <div class="pay-header">
+    <h1>Complete Your Payment</h1>
+    <p>Secure your premium membership and unlock all features.</p>
+  </div>
 
-        <div class="plan-summary card">
-            <h3 class="plan-name">{{ plan.name }}</h3>
-            <p class="plan-price">₹{{ plan.price }} / {{ plan.duration }} days</p>
-            <p class="plan-desc">{{ plan.description }}</p>
-        </div>
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert-msg alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
 
-        <div class="qr-section card">
-            <h4>Scan & Pay</h4>
-            <img src="{{settings.qr_image.url}}" alt="QR Code" class="qr-code" width="220" height="220">
-            <p class="note">Use your preferred UPI/Bank app to complete payment</p>
-        </div>
-
-        <form method="post" enctype="multipart/form-data" class="payment-form card">
-    {% csrf_token %}
-
-    <!-- Promo code -->
-    <label for="promo_code">Promo Code (optional)</label>
-    <input
-        type="text"
-        name="promo_code"
-        id="promo_code"
-        placeholder="Enter promo code"
-        autocomplete="off"
-    >
-    <small id="promo-status" class="note"></small>
-
-    <hr style="margin: 16px 0; opacity: 0.2;">
-
-    <!-- Transaction ID -->
-    <label for="transaction_id">Transaction / UTR Number</label>
-    <input
-        type="text"
-        name="transaction_id"
-        id="transaction_id"
-        placeholder="Enter transaction number"
-    >
-
-    <div class="divider">— OR —</div>
-
-    <!-- Screenshot -->
-    <label for="screenshot">Upload Payment Screenshot</label>
-    <input
-        type="file"
-        name="screenshot"
-        id="screenshot"
-        accept="image/*"
-    >
-
-    <button type="submit" class="btn-submit">
-        Submit Payment
-    </button>
-</form>
-
+  <!-- Plan summary -->
+  <div class="pay-card">
+    <div class="pay-card-title"><i class="fas fa-crown"></i> Selected Plan</div>
+    <div class="plan-summary">
+      <div>
+        <div class="plan-name">{{ plan.name }}</div>
+        {% if plan.description %}<div style="font-size:.82rem;color:var(--text-2);margin-top:3px;">{{ plan.description }}</div>{% endif %}
+      </div>
+      <div style="text-align:right;">
+        <div class="plan-price">₹{{ plan.price }}</div>
+        <div class="plan-period">{{ plan.duration }} days</div>
+      </div>
     </div>
+  </div>
+
+  <!-- QR Code -->
+  {% if settings.qr_image %}
+  <div class="pay-card">
+    <div class="pay-card-title"><i class="fas fa-qrcode"></i> Scan &amp; Pay</div>
+    <div class="qr-wrap">
+      <img src="{{ settings.qr_image.url }}" alt="Payment QR Code">
+      <p class="qr-note">Use any UPI app to scan and complete payment</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Payment form -->
+  <div class="pay-card">
+    <div class="pay-card-title"><i class="fas fa-receipt"></i> Payment Details</div>
+    <form method="post" enctype="multipart/form-data" class="pay-form">
+      {% csrf_token %}
+
+      <div class="field-group">
+        <label for="promo_code">Promo Code <span style="font-weight:400;color:var(--text-3);">(optional)</span></label>
+        <input type="text" name="promo_code" id="promo_code" placeholder="Enter promo code" autocomplete="off">
+        <span class="promo-status" id="promoStatus"></span>
+      </div>
+
+      <div class="field-group">
+        <label for="transaction_id">Transaction / UTR Number</label>
+        <input type="text" name="transaction_id" id="transaction_id" placeholder="Enter transaction number">
+      </div>
+
+      <div class="pay-divider">or</div>
+
+      <div class="field-group">
+        <label for="screenshot">Upload Payment Screenshot</label>
+        <input type="file" name="screenshot" id="screenshot" accept="image/*">
+      </div>
+
+      <button type="submit" class="pay-submit">
+        <i class="fas fa-check-circle"></i> Submit Payment
+      </button>
+    </form>
+  </div>
+</div>
 {% endblock %}
-
-
 
 {% block extra_scripts %}
-    <script>
-const promoInput = document.getElementById("promo_code");
-const promoStatus = document.getElementById("promo-status");
+<script>
+  const promoInput = document.getElementById('promo_code');
+  const promoStatus = document.getElementById('promoStatus');
+  let promoTimer = null;
 
-let promoTimeout = null;
-
-promoInput.addEventListener("input", () => {
-    clearTimeout(promoTimeout);
+  promoInput.addEventListener('input', () => {
+    clearTimeout(promoTimer);
     const code = promoInput.value.trim();
+    if (!code) { promoStatus.textContent = ''; return; }
+    promoStatus.textContent = 'Checking…';
+    promoStatus.className = 'promo-status';
 
-    if (!code) {
-        promoStatus.textContent = "";
-        return;
-    }
-
-    promoStatus.textContent = "Checking promo code…";
-
-    promoTimeout = setTimeout(() => {
-        fetch(
-            `{% url 'verify_promo_code' %}?code=${encodeURIComponent(code)}&cart_value={{ plan.price }}`
-        )
-        .then(res => res.json())
+    promoTimer = setTimeout(() => {
+      fetch(`{% url 'verify_promo_code' %}?code=${encodeURIComponent(code)}&cart_value={{ plan.price }}`)
+        .then(r => r.json())
         .then(data => {
-            if (data.valid) {
-                promoStatus.textContent = "Promo code applied (subject to verification)";
-                promoStatus.style.color = "var(--color-success)";
-            } else {
-                promoStatus.textContent = "Invalid or expired promo code";
-                promoStatus.style.color = "var(--color-error)";
-            }
+          if (data.valid) {
+            promoStatus.textContent = '✓ Promo code applied (subject to verification)';
+            promoStatus.className = 'promo-status promo-ok';
+          } else {
+            promoStatus.textContent = '✗ Invalid or expired promo code';
+            promoStatus.className = 'promo-status promo-err';
+          }
         })
         .catch(() => {
-            promoStatus.textContent = "Error validating promo code";
-            promoStatus.style.color = "var(--color-error)";
+          promoStatus.textContent = 'Error validating code';
+          promoStatus.className = 'promo-status promo-err';
         });
     }, 500);
-});
+  });
 </script>
-
-{% endblock extra_scripts %}
-    
+{% endblock %}

@@ -1,187 +1,127 @@
 {% extends "./base.html" %}
+{% load static %}
+{% block title %}Search Profiles | Vivah Sutra®{% endblock %}
 
-{% block content %}
+{% block extra_head %}
 <style>
-  .container {
-    max-width: 1200px;
-    margin: 20px auto;
-    padding: 0 1rem;
-  }
+  .search-wrap { max-width: 1200px; margin: 0 auto; }
 
-  /* --- Search Box Styling --- */
+  /* ── Search box ── */
   .search-box {
-    background: #fff;
-    border-radius: 14px;
-    padding: 25px 20px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-    margin-bottom: 2rem;
-    border: 1px solid #f3e5e5;
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 22px 20px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    margin-bottom: 28px;
   }
+  .search-box-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem; color: var(--text-1);
+    margin-bottom: 14px; font-weight: 600;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .search-box-title i { color: var(--rose); }
 
   #search-form {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 14px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
   }
-
   #search-form input,
   #search-form select {
-    flex: 1 1 180px;
-    padding: 10px 14px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    transition: border-color 0.2s;
+    padding: 10px 13px;
+    border: 1.5px solid var(--border-med);
+    border-radius: 9px;
+    font-size: .875rem;
+    font-family: 'Poppins', sans-serif;
+    background: var(--bg);
+    color: var(--text-1);
+    transition: border-color .2s, box-shadow .2s;
+    width: 100%;
   }
-
   #search-form input:focus,
   #search-form select:focus {
-    border-color: #d73030;
     outline: none;
-    box-shadow: 0 0 0 2px rgba(215,48,48,0.1);
+    border-color: var(--rose);
+    box-shadow: 0 0 0 3px rgba(192,65,90,.1);
+    background: var(--surface);
   }
+  #search-form input::placeholder { color: var(--text-3); }
 
-  /* --- Grid for profiles --- */
+  /* ── Results area ── */
   #results-area {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
-    gap: 28px;
-    margin-top: 1rem;
+    min-height: 200px;
   }
 
-  .profile-card {
-    background: #fff;
-    border-radius: 14px;
-    padding: 22px 18px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.05);
-    text-align: center;
-    transition: all 0.3s ease-in-out;
-    position: relative;
-    border: 1px solid #f1f1f1;
+  /* ── Toast ── */
+  #toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--text-1); color: #fff;
+    padding: 12px 18px; border-radius: 12px;
+    font-size: .875rem; font-weight: 500;
+    opacity: 0; pointer-events: none;
+    transform: translateY(8px);
+    transition: all .3s; z-index: 9999;
+    box-shadow: var(--shadow-lg);
   }
+  #toast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  #toast.error { background: var(--rose-dark); }
+  #toast.success { background: var(--sage); }
 
-  .profile-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+  /* ── Muted hint ── */
+  .search-hint {
+    text-align: center; padding: 48px 20px;
+    color: var(--text-3);
   }
-
-  .profile-card img {
-    width: 110px;
-    height: 110px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid #f5af19;
-    margin-bottom: 12px;
-  }
-
-  .profile-card h3 {
-    margin: 0;
-    font-size: 1.15rem;
-    color: #222;
-    font-weight: 600;
-  }
-
-  .profile-card p {
-    margin: 4px 0;
-    color: #555;
-    font-size: 0.95rem;
-  }
-
-  .profile-card em {
-    color: #888;
-    font-style: italic;
-  }
-
-  .btn.primary {
-    margin-top: 14px;
-    padding: 8px 16px;
-    background: linear-gradient(90deg, #d73030, #f5af19);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 600;
-    display: inline-block;
-    transition: background 0.3s ease-in-out;
-  }
-
-  .btn.primary:hover {
-    background: linear-gradient(90deg, #b82020, #e09d15);
-  }
-
-  /* Muted text for initial state */
-  .muted-msg {
-    text-align: center;
-    color: #888;
-    font-size: 1rem;
-    margin-top: 30px;
-  }
-
-  .space {
-    height: 12vh;
-  }
+  .search-hint i { font-size: 2.2rem; margin-bottom: 12px; color: var(--border-med); }
+  .search-hint p { font-size: .9rem; }
 
   @media (max-width: 480px) {
-    #search-form {
-      flex-direction: column;
-    }
-    #search-form input,
-    #search-form select {
-      width: 100%;
-    }
+    #search-form { grid-template-columns: 1fr 1fr; }
   }
-  #toast {
-    position: fixed;
-    bottom: 25px;
-    right: 25px;
-    background: #28a745;
-    color: white;
-    padding: 12px 16px;
-    border-radius: 8px;
-    font-size: 14px;
-    opacity: 0;
-    pointer-events: none;
-    transition: all .35s ease;
-    z-index: 2000;
-  }
-  #toast.show { opacity: 1; transform: translateY(-8px); pointer-events: auto; }
-  #toast.error { background: #d9534f; }
 </style>
+{% endblock %}
 
-<div class="container">
-<div id="toast"></div>
+{% block content %}
+<div class="search-wrap">
+  <div id="toast"></div>
 
-  <!-- Search Form Section -->
+  <!-- Search Form -->
   <div class="search-box">
+    <div class="search-box-title"><i class="fas fa-search"></i> Find Your Match</div>
     <form id="search-form"
-          hx-get="{% url 'search_results' %}"
-          hx-target="#results-area"
-          hx-trigger="change delay:200ms, keyup delay:200ms from:input">
+      hx-get="{% url 'search_results' %}"
+      hx-target="#results-area"
+      hx-trigger="change delay:250ms, keyup delay:300ms from:input">
 
       <input type="text" name="q" placeholder="Name">
       <input type="text" name="city" placeholder="City">
       <input type="text" name="profession" placeholder="Profession">
 
       <select name="gender">
-        <option value="">Gender</option>
-        <option value="Male" {% if user.profile.gender == 'Female' %} selected {% endif %}>Male</option>
-        <option value="Female" {% if user.profile.gender == 'Male' %} selected {% endif %}>Female</option>
+        <option value="">Any Gender</option>
+        <option value="Male" {% if user.profile.gender == 'Female' %}selected{% endif %}>Male</option>
+        <option value="Female" {% if user.profile.gender == 'Male' %}selected{% endif %}>Female</option>
         <option value="Other">Other</option>
       </select>
 
-      <input type="number" name="age_min" placeholder="Min Age">
-      <input type="number" name="age_max" placeholder="Max Age">
+      <input type="number" name="age_min" placeholder="Min Age" min="18" max="80">
+      <input type="number" name="age_max" placeholder="Max Age" min="18" max="80">
     </form>
   </div>
 
-  <!-- Results Area -->
+  <!-- Results -->
   <div id="results-area"
-       hx-get="{% url 'search_results' %}?initial=1"
-       hx-trigger="load"
-       hx-target="#results-area">
-    <p class="muted-msg">✨ Start typing to see search results... <br> (Click outside the box to trigger search)</p>
+    hx-get="{% url 'search_results' %}?initial=1"
+    hx-trigger="load"
+    hx-target="#results-area">
+    <div class="search-hint">
+      <i class="fas fa-heart"></i>
+      <p>Start typing to discover profiles…</p>
+    </div>
   </div>
 
-  <div class="space"></div>
+  <div style="height:40px;"></div>
 </div>
 {% endblock %}

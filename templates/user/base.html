@@ -2,232 +2,173 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vivah Sutra® | {% block title %} {% endblock %}</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vivah Sutra® | {% block title %}{% endblock %}</title>
+  <meta name="description" content="Vivah Sutra® — trusted matrimonial platform connecting singles for marriage across India.">
+  <meta name="keywords" content="matrimonial, marriage, life partner, matchmaking India, Vivah Sutra">
+  <meta name="author" content="Vivah Sutra®">
+  <meta name="robots" content="index, follow">
+  <meta property="og:title" content="Vivah Sutra® - Find Your Life Partner">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.VivahSutra.com/">
+  <meta property="og:image" content="https://www.VivahSutra.com/static/user/img/og-image.jpg">
+  <meta name="twitter:card" content="summary_large_image">
 
-    <meta name="description" content="Vivah Sutra® is a trusted matrimonial platform connecting singles for marriage. Discover profiles, search based on preferences, and connect with compatible life partners across India. Safe, secure, and easy matchmaking.">
-    <meta name="keywords" content="matrimonial, marriage, life partner, matchmaking site India, marriage profiles, Indian matrimonial, Vivah Sutra">
-    <meta name="author" content="Vivah Sutra®">
-    <meta name="robots" content="index, follow">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'user/css/style.css' %}">
+  <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
 
-    <!-- Open Graph (OG) for social media -->
-    <meta property="og:title" content="Vivah Sutra® - Find Your Life Partner with Trusted Matrimonial Service">
-    <meta property="og:description" content="Join Vivah Sutra® to search verified matrimonial profiles, connect with compatible matches, and take the next step toward your life partner. Secure and easy matchmaking.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://www.VivahSutra.com/">
-    <meta property="og:image" content="https://www.VivahSutra.com/static/user/img/og-image.jpg">
+  <style>
+    /* ── Navbar ── */
+    .vs-nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 1px 8px rgba(0,0,0,.06);
+      padding: 0 clamp(14px, 4vw, 36px);
+      position: sticky; top: 0; z-index: 1000;
+      min-height: 58px; display: flex; align-items: center;
+      transition: box-shadow .2s;
+    }
+    .vs-nav.scrolled { box-shadow: 0 2px 16px rgba(0,0,0,.1); }
+    .vs-nav .container-fluid { padding: 0; }
 
-    <!-- Twitter Card Data -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Vivah Sutra® - Trusted Matrimonial Site for Finding Your Perfect Match">
-    <meta name="twitter:description" content="Create a profile on Vivah Sutra®, search matrimonial matches by age, religion, caste, profession, and more. Secure matchmaking for serious relationships.">
-    <meta name="twitter:image" content="https://www.VivahSutra.com/static/user/img/og-image.jpg">
+    .vs-brand { display: flex; align-items: center; gap: 9px; text-decoration: none; }
+    .vs-logo  { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid var(--brand-tint); }
+    .vs-brand-name {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1rem, 2.5vw, 1.3rem);
+      font-weight: 700; color: var(--brand);
+    }
 
-    <!-- Bootstrap + Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    .vs-nav-links { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
+    .vs-nav-links a {
+      color: var(--text-2); font-size: .84rem; font-weight: 500;
+      padding: 7px 11px; border-radius: var(--r-sm);
+      transition: var(--ease); display: flex; align-items: center;
+      gap: 5px; white-space: nowrap; text-decoration: none;
+    }
+    .vs-nav-links a:hover,
+    .vs-nav-links a.active { color: var(--brand); background: var(--brand-tint); }
 
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@500;700&family=Poppins:wght@300;400;500&display=swap"
-          rel="stylesheet">
+    .vs-nav-links .nav-logout {
+      background: var(--brand); color: #fff !important;
+      padding: 7px 16px; border-radius: var(--r-full); margin-left: 6px;
+    }
+    .vs-nav-links .nav-logout:hover { background: var(--brand-dark) !important; }
 
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    .vs-nav-links .nav-signup {
+      background: var(--brand); color: #fff !important;
+      padding: 7px 18px; border-radius: var(--r-full);
+    }
+    .vs-nav-links .nav-signup:hover { background: var(--brand-dark) !important; }
 
-    <style>
-        :root {
-            --color-primary-bg: #FAF9F7; /* Soft Ivory */
-            --color-secondary-bg: #F5F1EB; /* Almond Mist */
-            --color-accent-1: #B75D69; /* Muted Rose */
-            --color-accent-2: #E6C98D; /* Warm Sand */
-            --color-highlight: #F4B9A5; /* Gentle Peach */
-            --color-text-primary: #3B3B3B; /* Deep Charcoal */
-            --color-text-secondary: #7A6F67; /* Warm Taupe */
-            --color-success: #6BAF92; /* Calm Sage */
-        }
+    .vs-nav-links .nav-login {
+      border: 1.5px solid var(--brand); color: var(--brand) !important;
+      padding: 6px 18px; border-radius: var(--r-full);
+    }
+    .vs-nav-links .nav-login:hover { background: var(--brand-tint); }
 
-        body {
-            margin: 0;
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(to bottom right, var(--color-primary-bg), #fff);
-            color: var(--color-text-primary);
-        }
+    .vs-toggler {
+      background: none; border: none; color: var(--text-2);
+      font-size: 1.2rem; padding: 6px; cursor: pointer;
+      border-radius: var(--r-sm); transition: var(--ease);
+    }
+    .vs-toggler:hover { background: var(--surface-2); color: var(--brand); }
 
-        /* Header / Navbar */
-        .top-bar {
-            background: var(--color-accent-1);
-            padding: 10px 20px;
-            box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.08);
-        }
+    @media (max-width: 991px) {
+      .vs-nav-collapse { padding: 10px 0 14px; border-top: 1px solid var(--border); margin-top: 8px; }
+      .vs-nav-links { flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; }
+      .vs-nav-links a { width: 100%; padding: 10px 14px; }
+      .vs-nav-links .nav-logout,
+      .vs-nav-links .nav-signup,
+      .vs-nav-links .nav-login { margin: 6px 0 0; width: 100%; text-align: center; justify-content: center; border-radius: var(--r-sm); }
+    }
 
-        .logo-img {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            border: 2px solid #fff;
-        }
+    /* ── Main ── */
+    .vs-main { min-height: calc(100vh - 58px - 72px); padding: clamp(14px, 3vw, 26px) clamp(12px, 4vw, 30px); }
 
-        .site-name {
-            color: white;
-            font-size: clamp(20px, 2.5vw, 26px);
-            font-family: 'Playfair Display', serif;
-            margin-left: 10px;
-            letter-spacing: 0.5px;
-        }
+    /* ── Footer ── */
+    .vs-footer {
+      background: var(--surface-2); border-top: 1px solid var(--border);
+      padding: 16px clamp(14px, 4vw, 36px); text-align: center;
+    }
+    .vs-footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; margin-bottom: 6px; }
+    .vs-footer-links a { font-size: .78rem; color: var(--text-2); font-weight: 500; transition: color .2s; text-decoration: none; }
+    .vs-footer-links a:hover { color: var(--brand); }
+    .vs-footer-copy { font-size: .74rem; color: var(--text-3); display: flex; align-items: center; justify-content: center; gap: 4px; }
+    .vs-footer-copy img { height: 12px; display: inline; }
 
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            margin: 8px 12px;
-            font-weight: 500;
-            font-size: clamp(14px, 2vw, 16px);
-            display: block;
-            transition: color 0.3s ease;
-        }
+    /* ── Page-level link transitions ── */
+    a { transition: color .18s ease, background .18s ease, opacity .18s ease; }
+  </style>
 
-        .nav-links a:hover {
-            color: var(--color-highlight);
-        }
-
-        #logout {
-            background-color: white;
-            color: var(--color-accent-1) !important;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-weight: 600;
-            display: inline-block;
-            transition: all 0.3s ease;
-        }
-
-        #logout:hover {
-            background-color: var(--color-highlight);
-            color: white !important;
-        }
-
-        /* Footer */
-        .footer {
-            margin-top: 40px;
-            padding: 18px 10px;
-            background: var(--color-secondary-bg);
-            width: 100%;
-            text-align: center;
-            font-family: 'Playfair Display', serif;
-            font-size: clamp(14px, 2vw, 16px);
-            color: var(--color-text-secondary);
-            border-top: 1px solid #e0dcd6;
-        }
-        .footer-bottom img{
-            height: 20px;
-        }
-
-        .footer-links {
-            margin-bottom: 6px;
-        }
-
-        .footer-links a {
-            color: var(--color-text-secondary);
-            margin: 0 6px;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s ease;
-        }
-
-        .footer-links a:hover {
-            color: var(--color-accent-1);
-        }
-
-        /* Content Wrapper */
-        main {
-            padding: clamp(16px, 4vw, 30px) 5%;
-        }
-
-        /* Navbar toggle button (for mobile) */
-        .navbar-toggler {
-            border: none;
-            outline: none;
-            color: white;
-            font-size: 22px;
-        }
-    </style>
-
-    {% block extra_head %}{% endblock %}
+  {% block extra_head %}{% endblock %}
 </head>
 <body>
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg top-bar">
-    <div class="container-fluid">
-        <div class="d-flex align-items-center">
-            <img src="{% static 'user/img/logo.jfif' %}" alt="Vivah Sutra Logo" class="logo-img">
-            <span class="site-name">Vivah Sutra®</span>
-        </div>
 
-        <!-- Mobile toggle button -->
-        <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-            <i class="fas fa-bars"></i>
-        </button>
+<nav class="vs-nav navbar navbar-expand-lg" id="vsNav">
+  <div class="container-fluid">
+    <a class="vs-brand" href="{% if user.is_authenticated %}{% url 'user_dashboard' %}{% else %}/{% endif %}">
+      <img src="{% static 'user/img/logo.webp' %}" alt="Vivah Sutra Logo" class="vs-logo">
+      <span class="vs-brand-name">Vivah Sutra®</span>
+    </a>
 
-        <div class="collapse navbar-collapse" id="navMenu">
-            <div class="nav-links ms-auto d-lg-flex align-items-center">
-                {% if request.resolver_match.url_name == 'login' %}
-                    <a href="{% url 'signup' %}" class="signup-link">Sign Up</a>
-                {% elif request.resolver_match.url_name == 'signup' %}
-                    <a href="{% url 'login' %}" class="login-link">Log In</a>
-                {% endif %}
+    <button class="vs-toggler ms-auto d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#vsNavMenu" aria-label="Toggle navigation">
+      <i class="fas fa-bars"></i>
+    </button>
 
-                {% if user.is_authenticated and user.profile and 'auth' not in request.path %}
-                    <a href="{% url 'search_page' %}"><i class="fas fa-search"></i> Search</a>
-                    <a href="{% url 'user_dashboard' %}"><i class="fas fa-home"></i> Dashboard</a>
-                    <a href="{% url 'chat' %}"><i class="fas fa-comments"></i> Chat</a>
-                    <a href="{% url 'view_profile' %}"><i class="fas fa-user"></i> Profile</a>
-                    <a href="{% url 'edit_profile' %}"><i class="fas fa-edit"></i> Edit</a>
-                    <a href="{% url 'connection' %}"><i class="fas fa-heart"></i> Connections</a>
-                    <a href="{% url 'logout' %}" id="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
-                {% endif %}
-            </div>
-        </div>
+    <div class="collapse navbar-collapse vs-nav-collapse" id="vsNavMenu">
+      <div class="vs-nav-links ms-auto">
+        {% if request.resolver_match.url_name == 'login' %}
+          <a href="{% url 'signup' %}" class="nav-signup"><i class="fas fa-user-plus"></i> Sign Up</a>
+        {% elif request.resolver_match.url_name == 'signup' %}
+          <a href="{% url 'login' %}" class="nav-login"><i class="fas fa-sign-in-alt"></i> Log In</a>
+        {% endif %}
+
+        {% if user.is_authenticated and user.profile and request.resolver_match.url_name not in 'login,signup,verify_otp,forgot_password,reset_password,complete_profile_step1,complete_profile_step2,complete_profile_step3,complete_profile_step4' %}
+          <a href="{% url 'search_page' %}"   {% if request.resolver_match.url_name == 'search_page'    %}class="active"{% endif %}><i class="fas fa-search"></i> Search</a>
+          <a href="{% url 'user_dashboard' %}" {% if request.resolver_match.url_name == 'user_dashboard' %}class="active"{% endif %}><i class="fas fa-home"></i> Home</a>
+          <a href="{% url 'chat' %}"           {% if 'chat' in request.path                              %}class="active"{% endif %}><i class="fas fa-comments"></i> Chat</a>
+          <a href="{% url 'view_profile' %}"   {% if request.resolver_match.url_name == 'view_profile'   %}class="active"{% endif %}><i class="fas fa-user"></i> Profile</a>
+          <a href="{% url 'connection' %}"     {% if request.resolver_match.url_name == 'connection'     %}class="active"{% endif %}><i class="fas fa-heart"></i> Connections</a>
+          <a href="{% url 'logout' %}" class="nav-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        {% endif %}
+      </div>
     </div>
+  </div>
 </nav>
 
-<!-- Page Content -->
-<main>
-    {% block content %}
-    {% endblock %}
+<main class="vs-main">
+  {% block content %}{% endblock %}
 </main>
 
-<!-- Footer -->
 {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'signup' %}
-    <div class="footer">
-        <div class="footer-links mb-2">
-            <a href="{% url 'privacy_policy' %}">Privacy Policy</a> |
-            <a href="{% url 'terms_conditions' %}">Terms & Conditions</a> |
-            <a href="{% url 'about' %}">About Us</a> |
-            <a href="{% url 'contact' %}">Contact</a> |
-            <a href="{% url 'help' %}">Help</a>
-        </div>
-        <div class="footer-bottom">
-            Made with <img src="{% static "user/img/heart 1.png" %}" alt="Love"> in India
-            | © 2025 Vivah Sutra®
-        </div>
-    </div>
+<footer class="vs-footer">
+  <div class="vs-footer-links">
+    <a href="{% url 'privacy_policy' %}">Privacy Policy</a>
+    <a href="{% url 'terms_conditions' %}">Terms &amp; Conditions</a>
+    <a href="{% url 'about' %}">About Us</a>
+    <a href="{% url 'contact' %}">Contact</a>
+    <a href="{% url 'help' %}">Help</a>
+  </div>
+  <div class="vs-footer-copy">
+    Made with <img src="{% static 'user/img/heart 1.webp' %}" alt="love"> in India &nbsp;|&nbsp; © 2025 Vivah Sutra®
+  </div>
+</footer>
 {% endif %}
 
-
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-{% block extra_scripts %}{% endblock %}
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "Vivah Sutra®",
-  "url": "https://www.VivahSutra.com/",
-  "potentialAction": {
-    "@type": "SearchAction",
-    "target": "https://www.VivahSutra.com/search?q={search_term_string}",
-    "query-input": "required name=search_term_string"
+<script>
+  // Sticky nav shadow on scroll
+  const vsNav = document.getElementById('vsNav');
+  if (vsNav) {
+    window.addEventListener('scroll', () => vsNav.classList.toggle('scrolled', window.scrollY > 10), { passive: true });
   }
-}
 </script>
-
+{% block extra_scripts %}{% endblock %}
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Vivah Sutra®","url":"https://www.VivahSutra.com/"}</script>
 </body>
 </html>

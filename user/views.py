@@ -198,18 +198,12 @@ def view_profile(request):
 
 @login_required
 def edit_profile(request):
-    """
-    Render and process profile editing:
-    - Load up to 6 profile pictures
-    - Handle ProfileForm update
-    - Handle photo uploads to Supabase
-     """
+    """Render and process profile editing with photo uploads."""
     user = request.user
     profile = user.profile
 
-    # fetch up to 6 pictures only (limit query to needed rows & fields)
-    pictures_qs = Picture.objects.filter(user=user).order_by("id").only("id", "picture_url", "is_profile")[:6]
-    pictures = list(pictures_qs)
+    # Fetch up to 6 pictures, pad with None
+    pictures = list(Picture.objects.filter(user=user).order_by("id").only("id", "picture_url", "is_profile")[:6])
     while len(pictures) < 6:
         pictures.append(None)
 
@@ -217,31 +211,21 @@ def edit_profile(request):
         form = ProfileForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
             form.save()
-
-            # Handle new uploaded photos (keys like photos_1, photos_2, etc.)
-            uploaded_files = [file for key, file in request.FILES.items() if key.startswith('photos_')]
-            for uploaded_file in uploaded_files:
+            # Upload any new photos (keys: photos_1, photos_2, …)
+            for key, f in request.FILES.items():
+                if not key.startswith('photos_'):
+                    continue
                 try:
-                    # upload_to_supabase will return a public url
-                    file_url = upload_to_supabase(uploaded_file, folder="user_photos")
-                    Picture.objects.create(
-                        user=user,
-                        picture_url=file_url,
-                        is_profile=False
-                    )
+                    url = upload_to_supabase(f, folder="user_photos")
+                    Picture.objects.create(user=user, picture_url=url, is_profile=False)
                 except Exception as e:
-                    # Prefer logging rather than print in production
-                    print(f"⚠️ Failed to upload {getattr(uploaded_file, 'name', 'unknown')}: {e}")
-
+                    import logging
+                    logging.getLogger(__name__).warning("Photo upload failed: %s", e)
             return redirect("view_profile")
     else:
         form = ProfileForm(instance=profile)
 
-    return render(request, "user/profile/edit.html", {
-        "form": form,
-        "profile": profile,
-        "pictures": pictures,
-    })
+    return render(request, "user/profile/edit.html", {"form": form, "profile": profile, "pictures": pictures})
 
 
 @login_required
@@ -628,9 +612,11 @@ def send_otp_email(user):
 
 @login_required
 def accept_terms(request):
-    user = request.user
-    user.terms_accepted = True
-    user.terms_accepted_on = datetime.now()
-    user.save()
-
-    return JsonResponse({'success':True})
+    if request.method != 'POST':
+        from django.http import HttpResponseNotAllowed
+        return HttpResponseNotAllowed(['POST'])
+    from django.utils import timezone as tz
+    request.user.terms_accepted = True
+    request.user.terms_accepted_on = tz.now()
+    request.user.save(update_fields=['terms_accepted', 'terms_accepted_on'])
+    return JsonResponse({'success': True})

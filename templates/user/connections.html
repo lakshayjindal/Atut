@@ -1,298 +1,235 @@
 {% extends "./base.html" %}
 {% load static %}
-
-{% block title %}Connection Requests{% endblock title %}
+{% block title %}Connections | Vivah Sutra®{% endblock %}
 
 {% block extra_head %}
-    <style>
-        :root {
-            --bg: #FFF8F2;
-            --panel: #ffffff;
-            --accent: #D72638;
-            --accent-dark: #a81d2c;
-            --accent-soft: #FFECE8;
-            --header-grad-1: #F4C95D;
-            --header-grad-2: #FFB7A1;
-            --border: #f0e6db;
-            --muted: #7D6E63;
-            --text-dark: #2F2F2F;
-            --text: #4a3f39;
-            --shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-        }
+<style>
+  .conn-wrap { max-width: 700px; margin: 0 auto; }
 
-        .connections-container {
-            max-width: 600px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background-color: var(--bg);
-            border-left: 4px solid var(--accent);
-            border-radius: 8px;
-            box-shadow: var(--shadow);
-        }
+  .conn-section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem; font-weight: 700;
+    color: var(--text-1); margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .conn-section-title i { color: var(--rose); }
 
-        .connections-container h2 {
-            color: var(--accent);
-            font-size: 24px;
-            margin-bottom: 1.5rem;
-        }
+  .conn-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    box-shadow: var(--shadow-xs);
+    transition: box-shadow .2s;
+  }
+  .conn-card:hover { box-shadow: var(--shadow-sm); }
 
-        .request-card {
-            background-color: var(--accent-soft);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem 1.5rem;
-            margin-bottom: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+  .conn-user {
+    display: flex; align-items: center; gap: 11px;
+    text-decoration: none; color: inherit; flex: 1; min-width: 0;
+  }
+  .conn-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%; object-fit: cover;
+    border: 2px solid var(--border);
+    flex-shrink: 0; transition: border-color .2s;
+  }
+  .conn-user:hover .conn-avatar { border-color: var(--rose-light); }
+  .conn-name {
+    font-size: .9rem; font-weight: 600;
+    color: var(--text-1); white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .conn-label { font-size: .75rem; color: var(--text-3); margin-top: 1px; }
 
-        .request-card p {
-            margin: 0;
-            font-size: 16px;
-            color: var(--text-dark);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+  .conn-actions { display: flex; gap: 8px; flex-shrink: 0; }
 
-        .accept-btn {
-            background-color: var(--accent);
-            color: #fff;
-            border: none;
-            padding: 8px 16px;
-            font-size: 14px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
+  .btn-accept {
+    background: var(--sage); color: #fff;
+    border: none; padding: 8px 16px;
+    border-radius: 8px; font-size: .82rem;
+    font-weight: 600; cursor: pointer;
+    transition: all .2s;
+  }
+  .btn-accept:hover { background: #4a8a68; transform: translateY(-1px); }
 
-        .accept-btn:hover {
-            background-color: var(--accent-dark);
-        }
+  .btn-cancel {
+    background: var(--surface-2); color: var(--text-2);
+    border: 1px solid var(--border-med);
+    padding: 8px 16px; border-radius: 8px;
+    font-size: .82rem; font-weight: 600;
+    cursor: pointer; transition: all .2s;
+  }
+  .btn-cancel:hover { background: #fde8ec; color: var(--rose-dark); border-color: var(--rose-light); }
 
-        .no-requests {
-            background-color: var(--accent-soft);
-            border: 1px solid var(--border);
-            padding: 1rem;
-            border-radius: 6px;
-            color: var(--muted);
-            text-align: center;
-            font-style: italic;
-        }
+  .btn-chat {
+    background: var(--rose); color: #fff;
+    border: none; padding: 8px 16px;
+    border-radius: 8px; font-size: .82rem;
+    font-weight: 600; cursor: pointer;
+    text-decoration: none; transition: all .2s;
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .btn-chat:hover { background: var(--rose-dark); color: #fff; }
 
-        .chat-btn,
-        .cancel-btn {
-            display: inline-block;
-            padding: 10px 16px;
-            font-size: 14px;
-            font-weight: 600;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            text-decoration: none;
-            text-align: center;
-            user-select: none;
-        }
+  .conn-empty {
+    background: var(--surface-2);
+    border: 1px dashed var(--border-med);
+    border-radius: 12px; padding: 24px;
+    text-align: center; color: var(--text-3);
+    font-size: .875rem; font-style: italic;
+  }
 
-        .chat-btn {
-            background-color: var(--header-grad-1);
-            color: #fff;
-        }
+  .conn-divider {
+    border: none; border-top: 1px solid var(--border);
+    margin: 28px 0;
+  }
 
-        .chat-btn:hover {
-            background-color: var(--header-grad-2);
-        }
-
-        .cancel-btn {
-            background-color: var(--accent);
-            color: #fff;
-        }
-
-        .cancel-btn:hover {
-            background-color: var(--accent-dark);
-        }
-
-        .profile-img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-right: 8px;
-            box-shadow: var(--shadow);
-            border: 2px solid var(--border);
-            transition: transform 0.3s ease;
-        }
-
-        .profile-img:hover {
-            transform: scale(1.05);
-            border-color: var(--accent);
-        }
-    </style>
-{% endblock extra_head %}
+  @media (max-width: 480px) {
+    .conn-card { flex-wrap: wrap; }
+    .conn-actions { width: 100%; justify-content: flex-end; }
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-    <div class="connections-container">
-        <h2>Pending Connection Requests</h2>
+<div class="conn-wrap">
 
-        <div id="received-requests">
-            {% if received_requests %}
-                {% for req in received_requests %}
-                    <div class="request-card" id="received-request-{{ req.id }}">
-                        <p>
-                            <a href="{% url 'profile_detail' req.sender.profile.id %}">
-                                {% with first_pic=req.sender.pictures.first %}
-                                    {% if first_pic %}
-                                        <img src="{{ first_pic.picture_url }}" alt="{{ profile.full_name }}"
-                                             class="profile-img">
-                                    {% else %}
-                                        {% if profile.gender == "Male" %}
-                                            <img src="{{ DEFAULT_MALE_FALLBACK_URL }}" alt="Default Male Profile"
-                                                 class="profile-img">
-                                        {% else %}
-                                            <img src="{{ DEFAULT_FEMALE_FALLBACK_URL }}" alt="Default Female Profile"
-                                                 class="profile-img">
-                                        {% endif %}
-                                    {% endif %}
-                                {% endwith %}
-                                <strong>{{ req.sender.first_name }} {{ req.sender.last_name }}</strong>
-                            </a>
-                            wants to connect with you.
-                        </p>
-                        <button onclick="acceptRequest({{ req.id }})" class="accept-btn">Accept</button>
-                    </div>
-                {% endfor %}
+  <!-- Received requests -->
+  <div class="conn-section-title">
+    <i class="fas fa-inbox"></i> Received Requests
+  </div>
+
+  <div id="received-requests">
+    {% if received_requests %}
+      {% for req in received_requests %}
+      <div class="conn-card" id="received-{{ req.id }}">
+        <a href="{% url 'profile_detail' req.sender.profile.id %}" class="conn-user">
+          {% with first_pic=req.sender.pictures.first %}
+            {% if first_pic %}
+              <img src="{{ first_pic.picture_url }}" alt="{{ req.sender.get_full_name }}" class="conn-avatar">
+            {% elif req.sender.profile.gender == "Male" %}
+              <img src="{{ DEFAULT_MALE_FALLBACK_URL }}" alt="Default" class="conn-avatar">
             {% else %}
-                <div class="no-requests" id="no-received-msg">
-                    No new connection requests at the moment.
-                </div>
+              <img src="{{ DEFAULT_FEMALE_FALLBACK_URL }}" alt="Default" class="conn-avatar">
             {% endif %}
+          {% endwith %}
+          <div>
+            <div class="conn-name">{{ req.sender.first_name }} {{ req.sender.last_name }}</div>
+            <div class="conn-label">wants to connect with you</div>
+          </div>
+        </a>
+        <div class="conn-actions">
+          <button onclick="acceptRequest({{ req.id }})" class="btn-accept">
+            <i class="fas fa-check"></i> Accept
+          </button>
         </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="conn-empty" id="no-received-msg">No new connection requests at the moment.</div>
+    {% endif %}
+  </div>
 
-        <hr>
-        <h2>Sent Connection Requests</h2>
+  <hr class="conn-divider">
 
-        <div id="sent-requests">
-            {% if sent_requests %}
-                {% for req in sent_requests %}
-                    <div class="request-card" id="sent-request-{{ req.id }}">
-                        <p>
-                            <a href="{% url 'profile_detail' req.receiver.profile.id %}">
-                                {% with first_pic=req.receiver.pictures.first %}
-                                    {% if first_pic %}
-                                        <img src="{{ first_pic.picture_url }}" alt="{{ profile.full_name }}"
-                                             class="profile-img">
-                                    {% else %}
-                                        {% if profile.gender == "Male" %}
-                                            <img src="{{ DEFAULT_MALE_FALLBACK_URL }}" alt="Default Male Profile"
-                                                 class="profile-img">
-                                        {% else %}
-                                            <img src="{{ DEFAULT_FEMALE_FALLBACK_URL }}" alt="Default Female Profile"
-                                                 class="profile-img">
-                                        {% endif %}
-                                    {% endif %}
-                                {% endwith %}
-                                <strong>{{ req.receiver.first_name }} {{ req.receiver.last_name }}</strong>
-                            </a>
-                        </p>
-                        <p>
-                            {% if req.is_accepted %}
-                                <a href="{% url 'chat' req.receiver.id %}" class="chat-btn">Chat</a>
-                            {% else %}
-                                <button onclick="cancelRequest({{ req.id }})" class="cancel-btn">Cancel Request</button>
-                            {% endif %}
-                        </p>
-                    </div>
-                {% endfor %}
+  <!-- Sent requests -->
+  <div class="conn-section-title">
+    <i class="fas fa-paper-plane"></i> Sent Requests
+  </div>
+
+  <div id="sent-requests">
+    {% if sent_requests %}
+      {% for req in sent_requests %}
+      <div class="conn-card" id="sent-{{ req.id }}">
+        <a href="{% url 'profile_detail' req.receiver.profile.id %}" class="conn-user">
+          {% with first_pic=req.receiver.pictures.first %}
+            {% if first_pic %}
+              <img src="{{ first_pic.picture_url }}" alt="{{ req.receiver.get_full_name }}" class="conn-avatar">
+            {% elif req.receiver.profile.gender == "Male" %}
+              <img src="{{ DEFAULT_MALE_FALLBACK_URL }}" alt="Default" class="conn-avatar">
             {% else %}
-                <div class="no-requests" id="no-sent-msg">
-                    You haven't sent any connection requests yet.
-                </div>
+              <img src="{{ DEFAULT_FEMALE_FALLBACK_URL }}" alt="Default" class="conn-avatar">
             {% endif %}
+          {% endwith %}
+          <div>
+            <div class="conn-name">{{ req.receiver.first_name }} {{ req.receiver.last_name }}</div>
+            <div class="conn-label">{% if req.is_accepted %}Connected{% else %}Pending…{% endif %}</div>
+          </div>
+        </a>
+        <div class="conn-actions">
+          {% if req.is_accepted %}
+            <a href="{% url 'chat' req.receiver.id %}" class="btn-chat">
+              <i class="fas fa-comments"></i> Chat
+            </a>
+          {% else %}
+            <button onclick="cancelRequest({{ req.id }})" class="btn-cancel">Cancel</button>
+          {% endif %}
         </div>
-    </div>
-{% endblock content %}
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="conn-empty" id="no-sent-msg">You haven't sent any connection requests yet.</div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
 {% block extra_scripts %}
-    <script>
-        function getCSRFToken() {
-            const name = 'csrftoken';
-            const cookies = document.cookie.split(';');
-            for (let cookie of cookies) {
-                cookie = cookie.trim();
-                if (cookie.startsWith(name + '=')) {
-                    return decodeURIComponent(cookie.substring(name.length + 1));
-                }
-            }
-            return '';
-        }
+<script>
+  function getCSRFToken() {
+    return document.cookie.split(';').reduce((acc, c) => {
+      const [k, v] = c.trim().split('=');
+      return k === 'csrftoken' ? decodeURIComponent(v) : acc;
+    }, '');
+  }
 
-        async function acceptRequest(requestId) {
-            try {
-                const res = await fetch(`/chat/connect/accept/${requestId}/`, {
-                    method: "POST",
-                    headers: {
-                        "X-CSRFToken": getCSRFToken(),
-                        "X-Requested-With": "XMLHttpRequest"
-                    }
-                });
+  async function acceptRequest(id) {
+    try {
+      const res = await fetch(`/chat/connect/accept/${id}/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCSRFToken(), 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      const data = await res.json();
+      if (data.success) {
+        const card = document.getElementById(`received-${id}`);
+        card.style.transition = 'all .35s ease';
+        card.style.opacity = '0';
+        card.style.transform = 'translateX(30px)';
+        setTimeout(() => {
+          card.remove();
+          if (!document.querySelector('#received-requests .conn-card'))
+            document.getElementById('received-requests').innerHTML = '<div class="conn-empty">No new connection requests at the moment.</div>';
+        }, 350);
+      } else { alert(data.error || 'Something went wrong!'); }
+    } catch (e) { alert('Network error. Try again!'); }
+  }
 
-                const data = await res.json();
-
-                if (data.success) {
-                    // 🎉 Animate & remove card
-                    const card = document.getElementById(`received-request-${requestId}`);
-                    card.style.transition = "all 0.4s ease";
-                    card.style.opacity = "0";
-                    card.style.transform = "translateX(40px)";
-                    setTimeout(() => card.remove(), 400);
-
-                    // If no cards left, show fallback
-                    if (!document.querySelector("#received-requests .request-card")) {
-                        document.getElementById("received-requests").innerHTML =
-                            '<div class="no-requests">No new connection requests at the moment.</div>';
-                    }
-                } else {
-                    alert(data.error || "Something went wrong!");
-                }
-            } catch (err) {
-                console.error(err);
-                alert("Network error. Try again!");
-            }
-        }
-
-        async function cancelRequest(requestId) {
-            try {
-                const res = await fetch(`/chat/cancel-request/${requestId}/`, {
-                    method: "POST",
-                    headers: {
-                        "X-CSRFToken": getCSRFToken(),
-                        "X-Requested-With": "XMLHttpRequest"
-                    }
-                });
-
-                const data = await res.json();
-
-                if (data.success) {
-                    // 🎉 Animate & remove card
-                    const card = document.getElementById(`sent-request-${requestId}`);
-                    card.style.transition = "all 0.4s ease";
-                    card.style.opacity = "0";
-                    card.style.transform = "translateX(-40px)";
-                    setTimeout(() => card.remove(), 400);
-
-                    // If no cards left, show fallback
-                    if (!document.querySelector("#sent-requests .request-card")) {
-                        document.getElementById("sent-requests").innerHTML =
-                            '<div class="no-requests">You haven\'t sent any connection requests yet.</div>';
-                    }
-                } else {
-                    alert(data.error || "Something went wrong!");
-                }
-            } catch (err) {
-                console.error(err);
-                alert("Network error. Try again!");
-            }
-        }
-    </script>
-
+  async function cancelRequest(id) {
+    try {
+      const res = await fetch(`/chat/cancel-request/${id}/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCSRFToken(), 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      const data = await res.json();
+      if (data.success) {
+        const card = document.getElementById(`sent-${id}`);
+        card.style.transition = 'all .35s ease';
+        card.style.opacity = '0';
+        card.style.transform = 'translateX(-30px)';
+        setTimeout(() => {
+          card.remove();
+          if (!document.querySelector('#sent-requests .conn-card'))
+            document.getElementById('sent-requests').innerHTML = '<div class="conn-empty">You haven\'t sent any connection requests yet.</div>';
+        }, 350);
+      } else { alert(data.error || 'Something went wrong!'); }
+    } catch (e) { alert('Network error. Try again!'); }
+  }
+</script>
 {% endblock %}

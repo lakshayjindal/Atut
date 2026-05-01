@@ -121,64 +121,55 @@ def _validate_attachment(f):
 
 @login_required
 def chat_view(request, chat_with=None):
-    """
-    Render main chat interface with sidebar and (optionally) a selected chat.
-
-    Args:
-        request (HttpRequest): Current request object.
-        chat_with (int, optional): ID of the user to chat with.
-
-    Returns:
-        HttpResponse: Rendered chat page.
-    """
-    # Active connections for sidebar
+    """Render main chat interface with sidebar and optionally a selected chat."""
     connections = ConnectionRequest.objects.filter(
         Q(sender=request.user) | Q(receiver=request.user),
         is_accepted=True,
         connection_active=True
+    ).values_list('sender_id', 'receiver_id')
+
+    connected_ids = {
+        recv if send == request.user.id else send
+        for send, recv in connections
+    }
+
+    # Single query with prefetch — avoids N+1 on profile/pictures
+    chat_users = (
+        User.objects
+        .filter(id__in=connected_ids)
+        .select_related('profile')
+        .prefetch_related('pictures')
     )
 
-    connected_user_ids = {
-        conn.receiver_id if conn.sender == request.user else conn.sender_id
-        for conn in connections
-    }
-    chat_users = User.objects.filter(id__in=connected_user_ids)
-
-    selected_user, messages = None, []
+    selected_user, chat_messages = None, []
 
     if chat_with:
-        selected_user = get_object_or_404(User, id=chat_with)
-        if selected_user.id not in connected_user_ids:
+        selected_user = get_object_or_404(
+            User.objects.select_related('profile').prefetch_related('pictures'),
+            id=chat_with
+        )
+        if selected_user.id not in connected_ids:
             return render(request, "user/chat/not_connected.html", {
                 "selected_user": selected_user,
                 "reason": "You must be connected to this user before chatting."
             })
 
-        # Last 100 messages, chronological
         qs = ChatMessage.objects.filter(
             Q(sender=request.user, receiver=selected_user) |
             Q(sender=selected_user, receiver=request.user)
         ).order_by("-id")[:100]
-        messages = list(reversed(qs))
-
-    # Sidebar profiles (get_or_create for safety)
-    user_profiles = {
-        u.id: Profile.objects.get_or_create(user=u)[0] for u in chat_users
-    }
+        chat_messages = list(reversed(qs))
 
     return render(request, "user/chat/maininterface.html", {
         "chat_users": chat_users,
-        "user_profiles": user_profiles,
         "selected_user": selected_user,
-        "messages": messages,
-        "selected_user_id": int(chat_with) if chat_with else None
+        "messages": chat_messages,
+        "selected_user_id": int(chat_with) if chat_with else None,
     })
 @login_required
 def send_message(request):
-
     user = request.user
     receiver_id = request.POST.get("receiver_id")
-
     if not receiver_id:
         return HttpResponseBadRequest("Missing receiver_id")
 
@@ -186,69 +177,45 @@ def send_message(request):
     text = request.POST.get("message", "").strip()
     attachment = request.FILES.get("attachment")
 
-    # -----------------------------
-    # 🔥 PREMIUM FEATURE CHECKS
-    # -----------------------------
-    is_premium = user_is_premium(user)
-
-    # 1️⃣ FREE USER: Daily message limit
-    if not is_premium:
-        today = date.today()
-        sent_today = ChatMessage.objects.filter(
-            sender=user,
-            timestamp__date=today
-        ).count()
-
-        MAX_FREE_MESSAGES = 20  # change anytime
-        if sent_today >= MAX_FREE_MESSAGES:
-            return HttpResponseBadRequest(
-                f"You reached your daily message limit ({MAX_FREE_MESSAGES}). Upgrade for unlimited chatting!"
-            )
-
-    # 2️⃣ FREE USER: No attachments allowed
-    if attachment and not is_premium:
-        return HttpResponseBadRequest("Sending images or files is a premium feature. Upgrade to enable it.")
-
-    # 3️⃣ FREE USER: Limit message length
-    if text and not is_premium:
-        MAX_FREE_MESSAGE_LEN = 200
-        if len(text) > MAX_FREE_MESSAGE_LEN:
-            return HttpResponseBadRequest(
-                f"Your message is too long. Free accounts allow up to {MAX_FREE_MESSAGE_LEN} characters."
-            )
-
-    # -------------------------------------------------
-    # 🔍 Your existing phone detection logic (unchanged)
-    # -------------------------------------------------
-    if text:
-        if contains_phone_number(text):
-            return HttpResponseBadRequest("Phone numbers are not allowed.")
-
-        if sending_phone_across_messages(request.user, receiver):
-            return HttpResponseBadRequest("You cannot send sequences of numbers that form phone numbers.")
-
-    # -------------------------------------------------
-    # Attachment upload logic
-    # -------------------------------------------------
-    if attachment:
-        attachment = upload_to_supabase(attachment)
-
     if not text and not attachment:
         return HttpResponseBadRequest("Empty message")
 
-    ok, err = _validate_attachment(attachment)
-    if not ok:
-        return HttpResponseBadRequest(err)
+    is_premium = user_is_premium(user)
+    today = date.today()
 
-    # -------------------------------------------------
-    # Save the message
-    # -------------------------------------------------
+    # Daily message limit (free users)
+    if not is_premium:
+        if ChatMessage.objects.filter(sender=user, timestamp__date=today).count() >= 20:
+            return HttpResponseBadRequest("Daily message limit reached. Upgrade for unlimited chatting!")
+
+    # Attachments — premium only; validate BEFORE upload
+    if attachment:
+        if not is_premium:
+            return HttpResponseBadRequest("Sending files is a premium feature.")
+        ok, err = _validate_attachment(attachment)
+        if not ok:
+            return HttpResponseBadRequest(err)
+
+    # Message length cap (free users)
+    if text and not is_premium and len(text) > 200:
+        return HttpResponseBadRequest("Free accounts allow up to 200 characters per message.")
+
+    # Phone number detection
+    if text:
+        if contains_phone_number(text):
+            return HttpResponseBadRequest("Phone numbers are not allowed in messages.")
+        if sending_phone_across_messages(user, receiver):
+            return HttpResponseBadRequest("Sequences of numbers resembling phone numbers are not allowed.")
+
+    # Upload attachment after all checks pass
+    file_url = upload_to_supabase(attachment) if attachment else None
+
     msg = ChatMessage.objects.create(
-        sender=request.user,
+        sender=user,
         receiver=receiver,
         message=text or None,
-        file_url=attachment or None,
-        timestamp=timezone.now()
+        file_url=file_url,
+        timestamp=timezone.now(),
     )
 
     html = render_to_string("user/partials/_message.html", {"msg": msg, "request": request})
@@ -358,21 +325,22 @@ def are_connected(user1, user2):
 
 @login_required
 def connections_page(request):
-    """
-    Display all connection requests.
-
-    Args:
-        request (HttpRequest): Current request.
-
-    Returns:
-        HttpResponse: Rendered connections page.
-    """
-    received_requests = ConnectionRequest.objects.filter(receiver=request.user, is_accepted=False)
-    sent_requests = ConnectionRequest.objects.filter(sender=request.user)
-
+    """Display all connection requests with related user data prefetched."""
+    received = (
+        ConnectionRequest.objects
+        .filter(receiver=request.user, is_accepted=False)
+        .select_related('sender', 'sender__profile')
+        .prefetch_related('sender__pictures')
+    )
+    sent = (
+        ConnectionRequest.objects
+        .filter(sender=request.user)
+        .select_related('receiver', 'receiver__profile')
+        .prefetch_related('receiver__pictures')
+    )
     return render(request, "user/connections.html", {
-        "received_requests": received_requests,
-        "sent_requests": sent_requests
+        "received_requests": received,
+        "sent_requests": sent,
     })
 
 

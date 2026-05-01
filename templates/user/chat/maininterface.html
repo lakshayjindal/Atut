@@ -1,407 +1,380 @@
 {% extends "../base.html" %}
 {% load static %}
-
-{% block title %}Chats{% endblock %}
+{% block title %}Chats | Vivah Sutra®{% endblock %}
 
 {% block extra_head %}
 <style>
-    :root {
-        --bg: #f8f6f3;        /* soft ivory */
-        --panel: #ffffff;     /* clean white panels */
-        --accent: #b75d69;    /* muted rose (instead of harsh red) */
-        --accent-2: #d4a373;  /* warm sand */
-        --accent-3: #6b8e7d;  /* sage green */
-        --muted: #7d6e63;     /* warm taupe */
-        --border: #e4ddd5;    /* soft beige border */
-        --shadow: 0 3px 8px rgba(0, 0, 0, .04);
+  /* ── Override main padding for full-height chat ── */
+  .vs-main { padding: 0 !important; }
+
+  /* ── Chat layout ── */
+  .chat-layout {
+    display: flex;
+    height: calc(100vh - 60px);
+    background: var(--bg);
+    overflow: hidden;
+  }
+
+  /* ── Sidebar ── */
+  .chat-sidebar {
+    width: 300px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .sidebar-header {
+    padding: 16px 18px 12px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .sidebar-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem; font-weight: 700;
+    color: var(--text-1); margin: 0;
+  }
+
+  .chat-list { flex: 1; overflow-y: auto; padding: 8px; }
+
+  .chat-item {
+    display: flex; align-items: center; gap: 11px;
+    padding: 10px 12px; border-radius: 12px;
+    text-decoration: none; color: inherit;
+    transition: background .15s;
+    cursor: pointer;
+  }
+  .chat-item:hover { background: var(--surface-2); }
+  .chat-item.active { background: var(--rose-tint); }
+
+  .chat-item-avatar {
+    width: 42px; height: 42px;
+    border-radius: 50%; object-fit: cover;
+    flex-shrink: 0; border: 2px solid var(--border);
+  }
+  .chat-item.active .chat-item-avatar { border-color: var(--rose-light); }
+
+  .chat-item-meta { flex: 1; min-width: 0; }
+  .chat-item-name {
+    font-size: .875rem; font-weight: 600;
+    color: var(--text-1); white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .chat-item-preview {
+    font-size: .75rem; color: var(--text-3);
+    white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; margin-top: 1px;
+  }
+
+  /* ── Chat main area ── */
+  .chat-main {
+    flex: 1; display: flex;
+    flex-direction: column; overflow: hidden;
+    background: var(--bg);
+  }
+
+  /* ── Chat header ── */
+  .chat-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 13px 18px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    box-shadow: var(--shadow-xs);
+  }
+  .chat-header-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%; object-fit: cover;
+    border: 2px solid var(--border);
+  }
+  .chat-header-info h3 {
+    font-size: .95rem; font-weight: 600;
+    color: var(--text-1); margin: 0;
+  }
+  .chat-header-info span {
+    font-size: .75rem; color: var(--text-3);
+  }
+
+  /* ── Messages ── */
+  .chat-messages {
+    flex: 1; overflow-y: auto;
+    padding: 18px 16px;
+    display: flex; flex-direction: column;
+    gap: 8px;
+  }
+
+  .msg {
+    max-width: 68%;
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: .875rem;
+    line-height: 1.5;
+    box-shadow: var(--shadow-xs);
+    animation: msgIn .18s ease;
+  }
+  .msg.sent {
+    align-self: flex-end;
+    background: var(--rose);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+  }
+  .msg.received {
+    align-self: flex-start;
+    background: var(--surface);
+    color: var(--text-1);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+  }
+  .msg-meta {
+    font-size: .68rem; margin-top: 4px;
+    opacity: .7;
+  }
+  .msg.sent .msg-meta { text-align: right; }
+
+  @keyframes msgIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Composer ── */
+  .chat-composer {
+    padding: 12px 16px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .composer-inner {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg);
+    border: 1.5px solid var(--border-med);
+    border-radius: 14px;
+    padding: 6px 8px 6px 14px;
+    transition: border-color .2s;
+  }
+  .composer-inner:focus-within {
+    border-color: var(--rose);
+    box-shadow: 0 0 0 3px rgba(192,65,90,.08);
+  }
+  .composer-inner input {
+    flex: 1; border: none; outline: none;
+    font-size: .875rem; background: transparent;
+    color: var(--text-1); font-family: 'Poppins', sans-serif;
+    padding: 4px 0;
+  }
+  .composer-inner input::placeholder { color: var(--text-3); }
+  .send-btn {
+    background: var(--rose); color: #fff;
+    border: none; border-radius: 10px;
+    padding: 8px 16px; font-size: .82rem;
+    font-weight: 600; cursor: pointer;
+    transition: background .2s;
+    display: flex; align-items: center; gap: 5px;
+    white-space: nowrap;
+  }
+  .send-btn:hover { background: var(--rose-dark); }
+
+  /* ── Empty state ── */
+  .chat-empty {
+    flex: 1; display: flex;
+    flex-direction: column;
+    align-items: center; justify-content: center;
+    color: var(--text-3); gap: 10px;
+  }
+  .chat-empty i { font-size: 2.5rem; color: var(--border-med); }
+  .chat-empty p { font-size: .9rem; }
+
+  /* ── Toast ── */
+  #chatToast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--text-1); color: #fff;
+    padding: 12px 18px; border-radius: 12px;
+    font-size: .875rem; font-weight: 500;
+    opacity: 0; pointer-events: none;
+    transform: translateY(8px);
+    transition: all .3s; z-index: 9999;
+    box-shadow: var(--shadow-lg);
+  }
+  #chatToast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  #chatToast.error { background: var(--rose-dark); }
+  #chatToast.success { background: var(--sage); }
+
+  /* ── Mobile: hide sidebar, show back button ── */
+  @media (max-width: 700px) {
+    .chat-sidebar {
+      position: fixed; left: 0; top: 60px; bottom: 0;
+      z-index: 200; transform: translateX(-100%);
+      transition: transform .25s ease;
+      width: 280px;
     }
-
-    html, body {
-        height: 100%;
-        margin: 0;
-        font-family: "Segoe UI", Roboto, sans-serif;
-        background: var(--bg);
-        color: #2f2f2f;
+    .chat-sidebar.open { transform: translateX(0); }
+    .chat-sidebar-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.4); z-index: 199;
     }
-
-    .container {
-        display: flex;
-        height: calc(100vh - 70px);
-        border-top: 1px solid var(--border);
-        border-bottom: 1px solid var(--border);
+    .chat-sidebar-overlay.open { display: block; }
+    .mobile-sidebar-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: none; border: none; cursor: pointer;
+      color: var(--text-2); font-size: .85rem;
+      padding: 6px 10px; border-radius: 8px;
+      transition: all .2s;
     }
-
-    /* Sidebar */
-    .sidebar {
-        width: 320px;
-        background: var(--panel);
-        border-right: 1px solid var(--border);
-        padding: 16px;
-        overflow-y: auto;
-    }
-
-    .sidebar h2 {
-        font-size: 14px;
-        margin-bottom: 14px;
-        font-weight: 600;
-        color: var(--accent);
-    }
-
-    .chat-user {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 10px;
-        border-radius: 10px;
-        text-decoration: none;
-        color: inherit;
-        transition: background .2s ease;
-    }
-
-    .chat-user:hover {
-        background: #f9f6f4;
-    }
-
-    .chat-user.selected-chat {
-        background: #fdf3f3;
-        border: 1px solid #f1dada;
-    }
-
-    .chat-user img {
-        width: 40px;
-        height: 40px;
-        border-radius: 8px;
-        object-fit: cover;
-    }
-
-    .chat-user .meta {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .chat-user .name {
-        font-weight: 600;
-        font-size: 14px;
-    }
-
-    .chat-user .last {
-        font-size: 12px;
-        color: var(--muted);
-    }
-
-    /* Chat Section */
-    .chat-section {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        background: var(--panel);
-    }
-
-    /* Header */
-    .chat-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 14px 18px;
-        border-bottom: 1px solid var(--border);
-        background: #fbf9f7;
-    }
-
-    .chat-header img {
-        width: 42px;
-        height: 42px;
-        border-radius: 10px;
-        object-fit: cover;
-    }
-
-    .chat-header .titles {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .chat-header .titles h3 {
-        margin: 0;
-        font-size: 15px;
-    }
-
-    .chat-header .presence {
-        font-size: 12px;
-        color: var(--muted);
-    }
-
-    .status-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        display: inline-block;
-        margin-right: 6px;
-        background: #bbb;
-    }
-
-    .status-dot.online {
-        background: #6ba67a; /* warm green */
-    }
-
-    /* Messages */
-    .chat-messages {
-        flex: 1;
-        overflow-y: auto;
-        padding: 18px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        background: #f8f6f3;
-    }
-
-    .message {
-        max-width: 65%;
-        padding: 10px 14px;
-        border-radius: 12px;
-        font-size: 14px;
-        box-shadow: var(--shadow);
-        animation: fadeIn .2s ease;
-    }
-
-    .sent {
-        align-self: flex-end;
-        background: var(--accent);
-        color: #fff;
-    }
-
-    .received {
-        align-self: flex-start;
-        background: #f3ebe6;
-        color: #2f2f2f;
-    }
-
-    .message .meta {
-        font-size: 11px;
-        margin-top: 4px;
-        color: var(--muted);
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(4px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Composer */
-    .composer-wrap {
-        padding: 14px;
-        border-top: 1px solid var(--border);
-        background: #fbf9f7;
-    }
-
-    .composer {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 6px 10px;
-        background: #fff;
-    }
-
-    .composer input[type="text"] {
-        flex: 1;
-        border: none;
-        outline: none;
-        font-size: 14px;
-        background: transparent;
-    }
-
-    .composer .btn {
-        border: none;
-        cursor: pointer;
-        padding: 8px 12px;
-        border-radius: 8px;
-        font-size: 14px;
-    }
-
-    .btn.attach {
-        background: #f3ebe6;
-        color: var(--muted);
-    }
-
-    .btn.send {
-        background: var(--accent);
-        color: #fff;
-        transition: background .2s ease;
-    }
-
-    .btn.send:hover {
-        background: #9c4955;
-    }
-    #chatToast {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    background: #b75d69; /* accent color */
-    color: white;
-    padding: 14px 18px;
-    border-radius: 10px;
-    font-size: 14px;
-    opacity: 0;
-    transform: translateY(10px);
-    pointer-events: none;
-    transition: all .35s ease;
-    z-index: 3000;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-#chatToast.show {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
-}
-
-#chatToast.error {
-    background: #d9534f; /* soft red */
-}
-
-#chatToast.success {
-    background: #6ba67a; /* sage green */
-}
-
+    .mobile-sidebar-btn:hover { background: var(--surface-2); color: var(--rose); }
+  }
+  @media (min-width: 701px) {
+    .mobile-sidebar-btn { display: none; }
+    .chat-sidebar-overlay { display: none !important; }
+  }
 </style>
-
 {% endblock %}
 
 {% block content %}
-
 <div id="chatToast"></div>
+<div class="chat-sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-    <div class="container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <h2>Chats</h2>
-            {% for chat_user in chat_users %}
-                <a href="{% url 'chat' chat_with=chat_user.id %}"
-                   class="chat-user {% if chat_user.id == selected_user_id %}selected-chat{% endif %}">
-                    {% with first_pic=chat_user.pictures.first %}
-                    {% if first_pic %}
-                        <img src="{{ first_pic.picture_url }}" alt="{{ chat_user.profile.full_name }}" class="profile-main-image">
-                    {% else %}
-                        {% if chat_user.profile.gender == "Male" %}
-                            <img src="{{ DEFAULT_MALE_FALLBACK_URL }}" alt="Default Male Profile"
-                                 class="profile-main-image">
-                        {% else %}
-                            <img src="{{ DEFAULT_FEMALE_FALLBACK_URL }}" alt="Default Female Profile"
-                                 class="profile-main-image">
-                        {% endif %}
-                    {% endif %}
-                {% endwith %}
-                    <span class="meta">
-          <span class="name">{{ chat_user.get_full_name }}</span>
-          <span class="last">{{ chat_user.last_message_preview|default:"" }}</span>
-        </span>
-                </a>
-            {% endfor %}
-        </aside>
-
-        <!-- Chat Section -->
-        <section class="chat-section">
-            {% if selected_user %}
-                <div class="chat-header">
-                    {% with first_pic=selected_user.pictures.first %}
-                    {% if first_pic %}
-                        <img src="{{ first_pic.picture_url }}" alt="{{ selected_user.profile.full_name }}" class="profile-main-image">
-                    {% else %}
-                        {% if selected_user.profile.gender == "Male" %}
-                            <img src="{{ DEFAULT_MALE_FALLBACK_URL }}" alt="Default Male Profile"
-                                 class="profile-main-image">
-                        {% else %}
-                            <img src="{{ DEFAULT_FEMALE_FALLBACK_URL }}" alt="Default Female Profile"
-                                 class="profile-main-image">
-                        {% endif %}
-                    {% endif %}
-                {% endwith %}
-                    <div class="titles">
-                        <h3>{{ selected_user.get_full_name }}</h3>
-{#                        <span class="presence"><span class="status-dot online"></span> Online</span>#}
-                    </div>
-                </div>
-
-                <div class="chat-messages" id="chatMessages">
-                    {% for msg in messages %}
-                        {% include "../partials/_message.html" with msg=msg %}
-                    {% endfor %}
-                </div>
-
-                <div class="composer-wrap">
-                    <form id="messageForm" method="post" enctype="multipart/form-data" class="composer">
-                        {% csrf_token %}
-                        <input type="hidden" name="receiver_id" value="{{ selected_user.id }}">
-                        <input type="text" id="messageInput" name="message" placeholder="Type a message…">
-                        <button type="submit" class="btn send">Send</button>
-                    </form>
-                </div>
-            {% else %}
-                <div style="flex:1; display:flex; align-items:center; justify-content:center; color:var(--muted)">
-                    Select a chat to start messaging!
-                </div>
-            {% endif %}
-        </section>
+<div class="chat-layout">
+  <!-- Sidebar -->
+  <aside class="chat-sidebar" id="chatSidebar">
+    <div class="sidebar-header">
+      <h2><i class="fas fa-comments" style="color:var(--rose);margin-right:7px;"></i>Chats</h2>
     </div>
+    <div class="chat-list">
+      {% for chat_user in chat_users %}
+      <a href="{% url 'chat' chat_with=chat_user.id %}"
+        class="chat-item {% if chat_user.id == selected_user_id %}active{% endif %}"
+        onclick="closeSidebar()">
+        {% with first_pic=chat_user.pictures.first %}
+          {% if first_pic %}
+            <img src="{{ first_pic.picture_url }}" alt="{{ chat_user.profile.full_name }}" class="chat-item-avatar">
+          {% elif chat_user.profile.gender == "Male" %}
+            <img src="{{ DEFAULT_MALE_FALLBACK_URL }}" alt="Default" class="chat-item-avatar">
+          {% else %}
+            <img src="{{ DEFAULT_FEMALE_FALLBACK_URL }}" alt="Default" class="chat-item-avatar">
+          {% endif %}
+        {% endwith %}
+        <div class="chat-item-meta">
+          <div class="chat-item-name">{{ chat_user.get_full_name }}</div>
+          <div class="chat-item-preview">{{ chat_user.last_message_preview|default:"Start a conversation" }}</div>
+        </div>
+      </a>
+      {% empty %}
+      <div style="padding:24px 16px;text-align:center;color:var(--text-3);font-size:.85rem;">
+        <i class="fas fa-heart" style="font-size:1.5rem;margin-bottom:8px;color:var(--border-med);display:block;"></i>
+        No chats yet. Connect with someone to start chatting!
+      </div>
+      {% endfor %}
+    </div>
+  </aside>
+
+  <!-- Main chat area -->
+  <section class="chat-main">
+    {% if selected_user %}
+    <!-- Header -->
+    <div class="chat-header">
+      <button class="mobile-sidebar-btn" onclick="openSidebar()">
+        <i class="fas fa-bars"></i>
+      </button>
+      {% with first_pic=selected_user.pictures.first %}
+        {% if first_pic %}
+          <img src="{{ first_pic.picture_url }}" alt="{{ selected_user.profile.full_name }}" class="chat-header-avatar">
+        {% elif selected_user.profile.gender == "Male" %}
+          <img src="{{ DEFAULT_MALE_FALLBACK_URL }}" alt="Default" class="chat-header-avatar">
+        {% else %}
+          <img src="{{ DEFAULT_FEMALE_FALLBACK_URL }}" alt="Default" class="chat-header-avatar">
+        {% endif %}
+      {% endwith %}
+      <div class="chat-header-info">
+        <h3>{{ selected_user.get_full_name }}</h3>
+        <span>Connected</span>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="chat-messages" id="chatMessages">
+      {% for msg in messages %}
+        {% include "../partials/_message.html" with msg=msg %}
+      {% endfor %}
+    </div>
+
+    <!-- Composer -->
+    <div class="chat-composer">
+      <form id="messageForm" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="receiver_id" value="{{ selected_user.id }}">
+        <div class="composer-inner">
+          <input type="text" id="messageInput" name="message" placeholder="Type a message…" autocomplete="off">
+          <button type="submit" class="send-btn">
+            <i class="fas fa-paper-plane"></i> Send
+          </button>
+        </div>
+      </form>
+    </div>
+
+    {% else %}
+    <!-- No chat selected -->
+    <div class="chat-empty">
+      <button class="mobile-sidebar-btn" onclick="openSidebar()" style="margin-bottom:8px;">
+        <i class="fas fa-bars"></i> View Chats
+      </button>
+      <i class="fas fa-comments"></i>
+      <p>Select a conversation to start messaging</p>
+    </div>
+    {% endif %}
+  </section>
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-function showChatToast(message, type = "error") {
-    const t = document.getElementById("chatToast");
-    t.textContent = message;
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  function showChatToast(msg, type = 'error') {
+    const t = document.getElementById('chatToast');
+    t.textContent = msg;
+    t.className = type;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
 
-    // reset classes
-    t.className = "";
-    t.classList.add(type);
-    t.classList.add("show");
+  function openSidebar() {
+    document.getElementById('chatSidebar').classList.add('open');
+    document.getElementById('sidebarOverlay').classList.add('open');
+  }
+  function closeSidebar() {
+    document.getElementById('chatSidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('open');
+  }
 
-    // hide after 3 seconds
-    setTimeout(() => {
-        t.classList.remove("show");
-    }, 3000);
-}
-</script>
+  $(function () {
+    const $box = $('#chatMessages');
+    const $form = $('#messageForm');
 
-    <script>
-$(function () {
-    const $chatBox = $("#chatMessages");
-    const $form = $("#messageForm");
+    function scrollBottom() { $box.scrollTop($box[0].scrollHeight); }
 
-    function scrollToBottom() {
-        $chatBox.scrollTop($chatBox[0].scrollHeight);
-    }
-
-    $form.on("submit", function (e) {
-    e.preventDefault();
-    const formData = new FormData(this);
-
-    $.ajax({
+    $form.on('submit', function (e) {
+      e.preventDefault();
+      const fd = new FormData(this);
+      $.ajax({
         url: "{% url 'send_message' %}",
-        method: "POST",
-        data: formData,
+        method: 'POST',
+        data: fd,
         processData: false,
         contentType: false,
-
         success: function (data) {
-            if (data.html) {
-                $chatBox.append(data.html);
-                scrollToBottom();
-                $("#messageInput").val("");
-            }
+          if (data.html) {
+            $box.append(data.html);
+            scrollBottom();
+            $('#messageInput').val('');
+          }
         },
-
         error: function (xhr) {
-            const errorMsg = xhr.responseText || "Unable to send message.";
-            showChatToast(errorMsg, "error");
+          showChatToast(xhr.responseText || 'Unable to send message.', 'error');
         }
+      });
     });
-});
 
-
-    scrollToBottom();
-});
+    scrollBottom();
+  });
 </script>
-
 {% endblock %}

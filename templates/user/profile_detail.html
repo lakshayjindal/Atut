@@ -1,706 +1,482 @@
-{% extends "./base.html" %} {% load static %} {% block extra_head %}
+{% extends "./base.html" %}
+{% load static %}
+{% block title %}{{ profile.full_name }} | Vivah Sutra®{% endblock %}
+
+{% block extra_head %}
 <style>
-  :root {
-    --color-bg: #faf9f7;
-    --color-card: #ffffff;
-    --color-accent: #e60000;
-    --color-accent-dark: #b50000;
-    --color-accent-soft: #f3cc54;
-    --color-text: #333;
-    --color-text-light: #666;
-    --shadow-soft: 0 6px 18px rgba(0, 0, 0, 0.08);
+  .pd-wrap {
+    max-width: 860px;
+    margin: 0 auto;
   }
 
-  body {
-    font-family: "Segoe UI", sans-serif;
-    background-color: var(--color-bg);
-    margin: 0;
-    padding: 0;
+  /* ── Profile header card ── */
+  .pd-header {
+    background: var(--surface);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
   }
 
-  .container {
-    max-width: 900px;
-    margin: 30px auto;
-    background: var(--color-card);
-    border-radius: 16px;
-    padding: 30px;
-    box-shadow: var(--shadow-soft);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  .container:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
-  }
-
-  /* Profile header */
-  .profile-card .header {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    background: linear-gradient(135deg, var(--color-accent-soft), #fdf6d9);
-    padding: 25px;
-    border-radius: 14px;
-    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
-  }
-
-  .profile-image {
-    width: 120px;
+  .pd-header-bg {
     height: 120px;
-    object-fit: cover;
+    background: linear-gradient(135deg, var(--rose-tint), var(--gold-light));
+  }
+
+  .pd-header-body {
+    padding: 0 24px 24px;
+    display: flex;
+    align-items: flex-end;
+    gap: 18px;
+    margin-top: -52px;
+    flex-wrap: wrap;
+  }
+
+  .pd-avatar {
+    width: 104px; height: 104px;
     border-radius: 50%;
-    border: 4px solid #fff;
-    box-shadow: var(--shadow-soft);
-    flex-shrink: 0;
-    transition: transform 0.3s ease;
-  }
-
-  .profile-image:hover {
-    transform: scale(1.05);
-  }
-
-  .info {
-    flex-grow: 1;
-  }
-
-  .name {
-    font-size: 26px;
-    font-weight: 700;
-    margin: 0;
-    color: var(--color-text);
-  }
-
-  .profession {
-    margin: 5px 0;
-    font-size: 16px;
-    color: var(--color-text);
-    font-weight: 500;
-  }
-
-  .age {
-    font-size: 14px;
-    color: var(--color-text-light);
-  }
-
-  /* Sections */
-  .section {
-    margin-top: 30px;
-    padding: 15px 20px;
-    background: #fffdf9;
-    border: 1px solid #f1e4d2;
-    border-radius: 10px;
-    transition: background 0.3s ease;
-  }
-
-  .section:hover {
-    background: #fff8ee;
-  }
-
-  .section h3 {
-    color: var(--color-accent);
-    font-size: 18px;
-    margin-bottom: 10px;
-    border-bottom: 2px solid #f5c6cb;
-    display: inline-block;
-    padding-bottom: 4px;
-  }
-
-  .section ul {
-    list-style: none;
-    padding-left: 0;
-    margin: 8px 0 0 0;
-  }
-
-  .section ul li {
-    padding: 6px 0;
-    font-size: 15px;
-    color: #444;
-  }
-
-  /* Quote */
-  .quote {
-    margin-top: 25px;
-    padding: 18px 20px;
-    background-color: #fff5f5;
-    color: var(--color-accent);
-    border-left: 5px solid var(--color-accent);
-    font-style: italic;
-    border-radius: 6px;
-    font-size: 15px;
-    opacity: 0.9;
-  }
-
-  /* Buttons */
-  .buttons {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 35px;
-    gap: 15px;
-  }
-
-  .btn {
-    padding: 12px 22px;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 15px;
-    color: white;
-    border-radius: 8px;
-    box-shadow: var(--shadow-soft);
-    transition: all 0.25s ease-in-out;
-  }
-
-  .btn.primary {
-    background-color: var(--color-accent);
-  }
-
-  .btn.primary:hover {
-    background-color: var(--color-accent-dark);
-    transform: translateY(-2px) scale(1.02);
-  }
-
-  .btn.secondary {
-    background-color: #777;
-  }
-
-  .btn.secondary:hover {
-    background-color: #555;
-    transform: translateY(-2px) scale(1.02);
-  }
-
-  /* Contact request modal */
-  #reqContact {
-    color: var(--color-accent);
-    cursor: pointer;
-    font-weight: 600;
-    transition: color 0.2s ease;
-  }
-
-  #reqContact:hover {
-    color: var(--color-accent-dark);
-  }
-
-  #request {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 50;
-    backdrop-filter: blur(6px);
-    transition: opacity 0.3s ease;
-  }
-
-  #requestBox {
-    width: fit-content;
-    padding: 20px;
-    background-color: var(--color-card);
-    margin: auto;
-    border-radius: 20px;
-    box-shadow: var(--shadow-soft);
-    transform: scale(0.9);
-    opacity: 0;
-    transition: all 0.35s ease;
-    z-index: 60;
-  }
-
-  #request.active #requestBox {
-    transform: scale(1);
-    opacity: 1;
-  }
-
-  #requestBackground {
-    height: 100%;
-    width: 100%;
-    background-color: rgba(170, 0, 0, 0.25);
-    position: absolute;
-    inset: 0;
-    z-index: 55;
-  }
-
-  #container {
-    display: flex;
-    gap: 20px;
-  }
-
-  #whatsapp,
-  #qrcode {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-
-  #whatsapp img {
-    width: 120px;
-    height: 120px;
-    margin-top: 10px;
-  }
-
-  #qrcode {
-    border-left: 2px solid #ddd;
-    padding-left: 20px;
-  }
-
-  #qrcode img {
-    width: 120px;
-    height: 120px;
-  }
-  /* Modal Overlay */
-  .img-modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.85);
-    z-index: 9999;
-    justify-content: center;
-    align-items: center;
-    backdrop-filter: blur(4px);
-  }
-
-  /* Modal box */
-  .img-modal-content {
-    background: #fff;
-    padding: 20px;
-    border-radius: 14px;
-    display: flex;
-    gap: 20px;
-    max-width: 900px;
-    width: 90%;
-  }
-
-  /* Main large preview */
-  .img-main {
-    max-width: 70%;
-    max-height: 80vh;
-    border-radius: 10px;
-    object-fit: contain;
-  }
-
-  /* Thumbnail strip */
-  .img-thumbs {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    overflow-y: auto;
-    max-height: 80vh;
-  }
-
-  .img-thumbs img {
-    width: 80px;
-    height: 80px;
-    border-radius: 8px;
     object-fit: cover;
+    border: 4px solid var(--surface);
+    box-shadow: var(--shadow-md);
+    cursor: pointer;
+    transition: transform .25s;
+    flex-shrink: 0;
+  }
+  .pd-avatar:hover { transform: scale(1.04); }
+
+  .pd-header-info { flex: 1; padding-top: 56px; min-width: 200px; }
+  .pd-name {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.3rem, 3vw, 1.7rem);
+    font-weight: 700; color: var(--text-1);
+    margin-bottom: 4px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .pd-profession { font-size: .9rem; color: var(--rose); font-weight: 600; margin-bottom: 4px; }
+  .pd-meta { font-size: .82rem; color: var(--text-2); }
+
+  .pd-header-actions {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    padding-top: 56px;
+    align-items: flex-start;
+  }
+
+  /* ── Section cards ── */
+  .pd-section {
+    background: var(--surface);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    padding: 20px 22px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-xs);
+    transition: box-shadow .2s;
+  }
+  .pd-section:hover { box-shadow: var(--shadow-sm); }
+
+  .pd-section-title {
+    font-size: .78rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .8px;
+    color: var(--rose); margin-bottom: 14px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .pd-section-title::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  .pd-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+  }
+  .pd-field { display: flex; flex-direction: column; gap: 2px; }
+  .pd-field .lbl { font-size: .72rem; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .4px; }
+  .pd-field .val { font-size: .88rem; color: var(--text-1); font-weight: 500; }
+
+  /* ── Bio quote ── */
+  .pd-bio {
+    background: var(--rose-tint);
+    border-left: 4px solid var(--rose);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    font-style: italic;
+    font-size: .9rem;
+    color: var(--text-2);
+    margin-bottom: 16px;
+  }
+
+  /* ── Image gallery ── */
+  .pd-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .pd-gallery img {
+    width: 100%; aspect-ratio: 1;
+    object-fit: cover; border-radius: 10px;
     cursor: pointer;
     border: 2px solid transparent;
-    transition: 0.2s;
+    transition: all .2s;
   }
+  .pd-gallery img:hover { border-color: var(--rose); transform: scale(1.03); }
 
-  .img-thumbs img.active-thumb {
-    border-color: var(--color-accent);
+  /* ── Buttons ── */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 20px; font-size: .875rem; font-weight: 600; border-radius: 9px; border: none; cursor: pointer; transition: all .2s; text-decoration: none; }
+  .btn-primary { background: var(--rose); color: #fff; }
+  .btn-primary:hover { background: var(--rose-dark); transform: translateY(-1px); }
+  .btn-secondary { background: var(--surface-2); color: var(--text-1); border: 1.5px solid var(--border-med); }
+  .btn-secondary:hover { background: var(--border); }
+
+  /* ── Image modal ── */
+  .img-modal {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.88); z-index: 9999;
+    justify-content: center; align-items: center;
+    backdrop-filter: blur(4px);
   }
-
-  /* Close button */
+  .img-modal.open { display: flex; }
+  .img-modal-inner {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex; gap: 14px;
+    max-width: 880px; width: 92%;
+    max-height: 88vh;
+  }
+  .img-main { flex: 1; max-height: 75vh; border-radius: 10px; object-fit: contain; }
+  .img-thumbs {
+    display: flex; flex-direction: column;
+    gap: 8px; overflow-y: auto; max-height: 75vh;
+  }
+  .img-thumbs img {
+    width: 72px; height: 72px;
+    border-radius: 8px; object-fit: cover;
+    cursor: pointer; border: 2px solid transparent;
+    transition: .2s;
+  }
+  .img-thumbs img.active { border-color: var(--rose); }
   .img-close {
-    position: absolute;
-    top: 30px;
-    right: 40px;
-    font-size: 45px;
-    cursor: pointer;
-    color: #fff;
-    transition: color 0.2s;
+    position: fixed; top: 20px; right: 28px;
+    font-size: 2.2rem; color: #fff; cursor: pointer;
+    transition: color .2s; z-index: 10000;
+  }
+  .img-close:hover { color: var(--rose-light); }
+
+  /* ── Contact modal ── */
+  .contact-modal {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.5); z-index: 8000;
+    justify-content: center; align-items: center;
+    padding: 20px;
+  }
+  .contact-modal.open { display: flex; }
+  .contact-box {
+    background: var(--surface);
+    border-radius: 18px; padding: 28px;
+    max-width: 420px; width: 100%;
+    box-shadow: var(--shadow-lg);
+    animation: slideUp .3s ease;
+  }
+  .contact-box h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem; margin-bottom: 16px; color: var(--text-1);
+  }
+  .contact-options { display: flex; gap: 16px; flex-wrap: wrap; }
+  .contact-option {
+    flex: 1; min-width: 140px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px;
+    text-align: center; cursor: pointer;
+    transition: all .2s;
+  }
+  .contact-option:hover { border-color: var(--rose); background: var(--rose-tint); }
+  .contact-option img { width: 48px; margin: 0 auto 8px; }
+  .contact-option p { font-size: .82rem; color: var(--text-2); margin: 0; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--text-1); color: #fff;
+    padding: 12px 18px; border-radius: 12px;
+    font-size: .875rem; font-weight: 500;
+    opacity: 0; transform: translateY(8px);
+    transition: all .3s; z-index: 99999;
+    box-shadow: var(--shadow-lg);
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.error { background: var(--rose-dark); }
+  .toast.success { background: var(--sage); }
+
+  /* ── Security ── */
+  body, img, .pd-wrap { user-select: none; -webkit-user-select: none; }
+  img { -webkit-user-drag: none; pointer-events: none; }
+  .pd-avatar, .pd-gallery img, .img-thumbs img, .btn, #reqContact { pointer-events: auto; }
+
+  .blur-secure { filter: blur(14px); pointer-events: none; user-select: none; }
+
+  .watermark {
+    position: fixed; inset: 0; pointer-events: none;
+    background-image: repeating-linear-gradient(-45deg, rgba(0,0,0,.05), rgba(0,0,0,.05) 1px, transparent 1px, transparent 44px);
+    z-index: 9997;
   }
 
-  .img-close:hover {
-    color: #ffcccc;
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  @media (max-width: 600px) {
+    .pd-header-body { flex-direction: column; align-items: flex-start; margin-top: -40px; }
+    .pd-header-info, .pd-header-actions { padding-top: 0; }
+    .pd-avatar { width: 80px; height: 80px; }
+    .pd-grid { grid-template-columns: 1fr 1fr; }
   }
-  .blur {
-  filter: blur(12px);
-  pointer-events: none;
-  user-select: none;
-}
-.toast {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  background: #333;
-  color: #fff;
-  padding: 14px 18px;
-  border-radius: 10px;
-  font-size: 14px;
-  box-shadow: var(--shadow-soft);
-  opacity: 0;
-  transform: translateY(10px);
-  transition: all 0.3s ease;
-  z-index: 99999;
-}
-
-.toast.show {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.toast.error {
-  background: #b50000;
-}
-
-.toast.success {
-  background: #16a34a;
-}
-/* Disable text & image selection */
-body, img, .container {
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-}
-
-/* Disable image dragging */
-img {
-  -webkit-user-drag: none;
-  pointer-events: none;
-}
-
-/* Allow clicks where needed */
-.profile-image,
-.img-thumbs img,
-.btn,
-#reqContact {
-  pointer-events: auto;
-}
-
-.watermark {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background-image: repeating-linear-gradient(
-    -45deg,
-    rgba(0,0,0,0.08),
-    rgba(0,0,0,0.08) 1px,
-    transparent 1px,
-    transparent 40px
-  );
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 42px;
-  font-weight: 700;
-  color: rgba(0, 0, 0, 0.12);
-  z-index: 9998;
-  text-transform: uppercase;
-}
-
-
 </style>
-{% endblock extra_head %} {% block content %}
-<div class="container">
-  <div class="profile-card">
-    <div class="header">
-      {% with pictures=profile.user.pictures.all %} {% if pictures %}
-      <img
-        src="{{ pictures.0.picture_url }}"
-        alt="{{ profile.full_name }}"
-        class="profile-image"
-        onclick="openImageModal(
-                [{% for p in pictures %}'{{ p.picture_url }}'{% if not forloop.last %},{% endif %}{% endfor %}],
-                '{{ pictures.0.picture_url }}'
-            )"
-      />
-      {% else %} {% if profile.gender == "Male" %}
-      <img src="{{ DEFAULT_MALE_FALLBACK_URL }}" class="profile-image" />
-      {% else %}
-      <img src="{{ DEFAULT_FEMALE_FALLBACK_URL }}" class="profile-image" />
-      {% endif %} {% endif %} {% endwith %}
+{% endblock %}
 
-      <div class="info">
-        <h2 class="name">{{ profile.full_name }}</h2>
-        <p class="profession">{{ profile.profession }}</p>
-        <p class="age">
-          Age: {{ profile.age }} | Qualification: {{ profile.education }}
-        </p>
+{% block content %}
+<div class="watermark"></div>
+<div class="pd-wrap">
+
+  <!-- Header card -->
+  <div class="pd-header">
+    <div class="pd-header-bg"></div>
+    <div class="pd-header-body">
+      {% with pictures=profile.user.pictures.all %}
+        {% if pictures %}
+          <img src="{{ pictures.0.picture_url }}" alt="{{ profile.full_name }}" class="pd-avatar"
+            onclick="openModal([{% for p in pictures %}'{{ p.picture_url }}'{% if not forloop.last %},{% endif %}{% endfor %}], '{{ pictures.0.picture_url }}')">
+        {% elif profile.gender == "Male" %}
+          <img src="{{ DEFAULT_MALE_FALLBACK_URL }}" class="pd-avatar">
+        {% else %}
+          <img src="{{ DEFAULT_FEMALE_FALLBACK_URL }}" class="pd-avatar">
+        {% endif %}
+      {% endwith %}
+
+      <div class="pd-header-info">
+        <div class="pd-name">
+          {{ profile.full_name }}
+          {% if profile.user.subscription and profile.user.subscription.has_active_subscription %}
+            <span style="color:var(--gold);font-size:.9rem;">⭐</span>
+          {% endif %}
+        </div>
+        <div class="pd-profession">{{ profile.profession }}</div>
+        <div class="pd-meta">{{ profile.age }} yrs &nbsp;·&nbsp; {{ profile.education }} &nbsp;·&nbsp; {{ profile.city }}</div>
+      </div>
+
+      <div class="pd-header-actions">
+        {% if connected %}
+          <a href="{% url 'chat' profile.user.id %}" class="btn btn-primary"><i class="fas fa-comments"></i> Chat</a>
+        {% else %}
+          <button class="btn btn-primary btn-connect" onclick="sendRequest('{{ profile.user.id }}', this)">
+            <i class="fas fa-user-plus"></i> Connect
+          </button>
+        {% endif %}
+        <a href="{% url 'user_dashboard' %}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
       </div>
     </div>
+  </div>
 
-    <div class="section">
-      <h3>Basic Details</h3>
-      <ul>
-        <li>Height: {{ profile.height }}</li>
-        <li>Hometown: {{ profile.city }}</li>
-        <li>Current Place: {{ profile.state }}</li>
-      </ul>
+  <!-- Photo gallery -->
+  {% with pictures=profile.user.pictures.all %}
+    {% if pictures|length > 1 %}
+    <div class="pd-section">
+      <div class="pd-section-title"><i class="fas fa-images"></i> Photos</div>
+      <div class="pd-gallery" id="secure-content">
+        {% for pic in pictures %}
+          <img src="{{ pic.picture_url }}" alt="Photo {{ forloop.counter }}"
+            onclick="openModal([{% for p in pictures %}'{{ p.picture_url }}'{% if not forloop.last %},{% endif %}{% endfor %}], '{{ pic.picture_url }}')">
+        {% endfor %}
+      </div>
     </div>
-
-    <div class="section">
-      <h3>Education Details</h3>
-      <ul>
-        <li>Qualification: {{ profile.education }}</li>
-        <li>Profession: {{ profile.profession }}</li>
-        <li>Workplace: {{ profile.occupation }}</li>
-      </ul>
-    </div>
-
-    <div class="section">
-      <h3>Family Background</h3>
-      <ul>
-        <li>Caste: {{ profile.caste }}</li>
-        <li>Gotra: {{ profile.gotra }}</li>
-        <li>Religion: {{ profile.religion }}</li>
-        <li>Notes: {{ profile.notes }}</li>
-      </ul>
-    </div>
-
-    <div class="section">
-      <h3>Lifestyle Preferences</h3>
-      <ul>
-        <li>Looking For: {{ profile.looking_for }}</li>
-        <li><span id="reqContact">Request Contact Number</span></li>
-      </ul>
-    </div>
-
-    {% if profile.bio %}
-    <div class="quote">"{{ profile.bio }}"</div>
     {% endif %}
+  {% endwith %}
 
-    <div class="buttons">
-      {% if connected %}
-      <a href="{% url 'chat' profile.user.id %}" class="btn primary">Chat</a>
-      {% else %}
-     <button
-  class="btn primary btn-connect"
-  onclick="sendRequest('{{ profile.user.id }}', this)"
->
-  Send Request
-</button>
+  <!-- Bio -->
+  {% if profile.bio %}
+  <div class="pd-bio">"{{ profile.bio }}"</div>
+  {% endif %}
 
+  <!-- Basic Details -->
+  <div class="pd-section">
+    <div class="pd-section-title"><i class="fas fa-user"></i> Basic Details</div>
+    <div class="pd-grid">
+      <div class="pd-field"><span class="lbl">Height</span><span class="val">{{ profile.height|default:"—" }}</span></div>
+      <div class="pd-field"><span class="lbl">Age</span><span class="val">{{ profile.age }} years</span></div>
+      <div class="pd-field"><span class="lbl">Marital Status</span><span class="val">{{ profile.marital_status|default:"—" }}</span></div>
+      <div class="pd-field"><span class="lbl">Hometown</span><span class="val">{{ profile.city|default:"—" }}</span></div>
+      <div class="pd-field"><span class="lbl">State</span><span class="val">{{ profile.state|default:"—" }}</span></div>
+      <div class="pd-field"><span class="lbl">Looking For</span><span class="val">{{ profile.looking_for|default:"—" }}</span></div>
+    </div>
+  </div>
+
+  <!-- Education & Career -->
+  <div class="pd-section">
+    <div class="pd-section-title"><i class="fas fa-graduation-cap"></i> Education &amp; Career</div>
+    <div class="pd-grid">
+      <div class="pd-field"><span class="lbl">Qualification</span><span class="val">{{ profile.education|default:"—" }}</span></div>
+      <div class="pd-field"><span class="lbl">Profession</span><span class="val">{{ profile.profession|default:"—" }}</span></div>
+      <div class="pd-field"><span class="lbl">Workplace</span><span class="val">{{ profile.occupation|default:"—" }}</span></div>
+      <div class="pd-field"><span class="lbl">Income</span><span class="val">{{ profile.income|default:"—" }}</span></div>
+    </div>
+  </div>
+
+  <!-- Family Background -->
+  <div class="pd-section">
+    <div class="pd-section-title"><i class="fas fa-home"></i> Family Background</div>
+    <div class="pd-grid">
+      <div class="pd-field"><span class="lbl">Religion</span><span class="val">{{ profile.religion|default:"—" }}</span></div>
+      <div class="pd-field"><span class="lbl">Caste</span><span class="val">{{ profile.caste|default:"—" }}</span></div>
+      <div class="pd-field"><span class="lbl">Gotra</span><span class="val">{{ profile.gotra|default:"—" }}</span></div>
+      <div class="pd-field"><span class="lbl">Mother Tongue</span><span class="val">{{ profile.mother_tongue|default:"—" }}</span></div>
+      {% if profile.notes %}
+      <div class="pd-field" style="grid-column: 1/-1;"><span class="lbl">Notes</span><span class="val">{{ profile.notes }}</span></div>
       {% endif %}
-      <a href="{% url 'user_dashboard' %}" class="btn primary"
-        >Back to Dashboard</a
-      >
     </div>
   </div>
+
+  <!-- Contact -->
+  <div class="pd-section">
+    <div class="pd-section-title"><i class="fas fa-phone"></i> Contact</div>
+    <p style="font-size:.88rem;color:var(--text-2);">
+      <span id="reqContact" style="color:var(--rose);cursor:pointer;font-weight:600;">
+        <i class="fas fa-phone-alt"></i> Request Contact Number
+      </span>
+    </p>
+  </div>
+
 </div>
 
-<!-- Modal -->
-<div id="request">
-  <div id="requestBox">
-    <div id="container">
-      <div id="whatsapp">
-        <p>Contact The admin team on WhatsApp</p>
-        <a
-          href="https://wa.me/919634400703"
-          onclick="copyWhatsAppMessage()"
-          target="_blank"
-        >
-          <img src="{% static 'user/img/whatsapp.svg' %}" alt="whatsapp" />
-        </a>
-      </div>
-      <div id="qrcode">
-        Take one of Our Premium Plans
-        <a href="{% url 'plans_list' %}" class="btn primary">Explore Plans</a>
-      </div>
-    </div>
-  </div>
-  <div id="requestBackground"></div>
-</div>
-<!-- Image Viewer Modal -->
+<!-- Image Modal -->
 <div id="imageModal" class="img-modal">
-  <span class="img-close" onclick="closeImageModal()">&times;</span>
-
-  <div class="img-modal-content" id='secure-content'>
-    <div class="img-thumbs" id="thumbContainer"></div>
-    <img id="mainImagePreview" class="img-main" src="" alt="" />
+  <span class="img-close" onclick="closeModal()">&times;</span>
+  <div class="img-modal-inner">
+    <div class="img-thumbs" id="thumbs"></div>
+    <img id="mainImg" class="img-main" src="" alt="">
   </div>
 </div>
+
+<!-- Contact Modal -->
+<div id="contactModal" class="contact-modal">
+  <div class="contact-box">
+    <h3>Get Contact Details</h3>
+    <div class="contact-options">
+      <div class="contact-option" onclick="copyWA()">
+        <img src="{% static 'user/img/whatsapp.svg' %}" alt="WhatsApp">
+        <p>Contact via WhatsApp</p>
+      </div>
+      <div class="contact-option" onclick="window.location='{% url 'plans_list' %}'">
+        <div style="font-size:2rem;margin-bottom:8px;">⭐</div>
+        <p>Upgrade to Premium</p>
+      </div>
+    </div>
+    <button onclick="document.getElementById('contactModal').classList.remove('open')"
+      style="margin-top:16px;width:100%;padding:10px;background:var(--surface-2);border:1px solid var(--border-med);border-radius:8px;cursor:pointer;font-size:.85rem;color:var(--text-2);">
+      Close
+    </button>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
 <script>
-  function showToast(message, isError = false) {
-    const toast = document.createElement("div");
-    toast.className = `toast ${isError ? "error" : "success"}`;
-    toast.innerText = message;
-
-    document.body.appendChild(toast);
-
-    requestAnimationFrame(() => toast.classList.add("show"));
-
-    setTimeout(() => {
-      toast.classList.remove("show");
-      setTimeout(() => toast.remove(), 300);
-    }, 3000);
+  function showToast(msg, isError = false) {
+    const t = document.createElement('div');
+    t.className = `toast ${isError ? 'error' : 'success'}`;
+    t.innerText = msg;
+    document.body.appendChild(t);
+    requestAnimationFrame(() => t.classList.add('show'));
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3000);
   }
-</script>
-<script>
+
   function getCSRFToken() {
-    const name = "csrftoken";
-    const cookies = document.cookie.split(";");
-
-    for (let cookie of cookies) {
-      cookie = cookie.trim();
-      if (cookie.startsWith(name + "=")) {
-        return decodeURIComponent(cookie.substring(name.length + 1));
-      }
-    }
-    return "";
-  }
-</script>
-
-<script>
-  const requestEl = document.getElementById("request");
-  const requestBox = document.getElementById("requestBox");
-  const openBtn = document.getElementById("reqContact");
-  const bg = document.getElementById("requestBackground");
-
-  function toggleRequest(open) {
-    if (open) {
-      requestEl.style.display = "flex";
-      setTimeout(() => requestEl.classList.add("active"), 20);
-    } else {
-      requestEl.classList.remove("active");
-      setTimeout(() => (requestEl.style.display = "none"), 300);
-    }
+    return document.cookie.split(';').reduce((acc, c) => {
+      const [k, v] = c.trim().split('=');
+      return k === 'csrftoken' ? decodeURIComponent(v) : acc;
+    }, '');
   }
 
-  openBtn.addEventListener("click", () => toggleRequest(true));
-  bg.addEventListener("click", () => toggleRequest(false));
-
-  function copyWhatsAppMessage() {
-    const msg = `Hey
-I am Interested in {{ profile.user.username }} - {{ profile.user.first_name }} {{ profile.user.last_name }}.
-Kindly Provide me the contact number for them`;
-
-    navigator.clipboard.writeText(msg).then(() => {
-      showToast("Message copied to clipboard");
-    });
-  }
-</script>
-
-<script>
-  function openImageModal(images, mainImage) {
-    const modal = document.getElementById("imageModal");
-    const mainPreview = document.getElementById("mainImagePreview");
-    const thumbs = document.getElementById("thumbContainer");
-
-    modal.style.display = "flex";
-    mainPreview.src = mainImage;
-
-    thumbs.innerHTML = "";
-
-    images.forEach((src) => {
-      const img = document.createElement("img");
+  // Image modal
+  function openModal(images, main) {
+    const modal = document.getElementById('imageModal');
+    const mainImg = document.getElementById('mainImg');
+    const thumbs = document.getElementById('thumbs');
+    mainImg.src = main;
+    thumbs.innerHTML = '';
+    images.forEach(src => {
+      const img = document.createElement('img');
       img.src = src;
-      if (src === mainImage) img.classList.add("active-thumb");
-
+      if (src === main) img.classList.add('active');
       img.onclick = () => {
-        mainPreview.src = src;
-        document
-          .querySelectorAll(".img-thumbs img")
-          .forEach((i) => i.classList.remove("active-thumb"));
-        img.classList.add("active-thumb");
+        mainImg.src = src;
+        thumbs.querySelectorAll('img').forEach(i => i.classList.remove('active'));
+        img.classList.add('active');
       };
-
       thumbs.appendChild(img);
     });
+    modal.classList.add('open');
   }
+  function closeModal() { document.getElementById('imageModal').classList.remove('open'); }
+  window.addEventListener('click', e => { if (e.target === document.getElementById('imageModal')) closeModal(); });
 
-  function closeImageModal() {
-    document.getElementById("imageModal").style.display = "none";
-  }
-
-  // close modal when clicking outside
-  window.addEventListener("click", (e) => {
-    const modal = document.getElementById("imageModal");
-    if (e.target === modal) closeImageModal();
+  // Contact modal
+  document.getElementById('reqContact').addEventListener('click', () => {
+    document.getElementById('contactModal').classList.add('open');
   });
-</script>
-
-<script>
-  const secureArea = document.getElementById("secure-content");
-
-  function blurSecure() {
-    secureArea.classList.add("blur");
-  }
-
-  function unblurSecure() {
-    secureArea.classList.remove("blur");
-  }
-
-  // Tab switch / minimize
-  document.addEventListener("visibilitychange", () => {
-    document.hidden ? blurSecure() : unblurSecure();
+  document.getElementById('contactModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('contactModal'))
+      document.getElementById('contactModal').classList.remove('open');
   });
 
-  // Window loses focus (PrintScreen, Alt+Tab, OS screenshot tools)
-  window.addEventListener("blur", blurSecure);
-  window.addEventListener("focus", unblurSecure);
+  function copyWA() {
+    const msg = `Hey\nI am interested in {{ profile.user.username }} - {{ profile.user.first_name }} {{ profile.user.last_name }}.\nKindly provide me the contact number.`;
+    navigator.clipboard.writeText(msg).then(() => showToast('Message copied!'));
+    window.open('https://wa.me/919634400703', '_blank');
+  }
 
-  // Detect PrintScreen key
-  document.addEventListener("keyup", e => {
-    if (e.key === "PrintScreen") {
-      blurSecure();
-      showToast("Screenshots are not allowed", true);
-      setTimeout(unblurSecure, 2000);
-    }
-  });
-</script>
-
-<script>
+  // Connect request
   async function sendRequest(toUserId, btn) {
     if (btn.disabled) return;
-
     btn.disabled = true;
-    const originalText = btn.innerText;
-    btn.innerText = "Sending...";
-
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     try {
-      const url = "{% url 'send_request' 0 %}".replace("0", toUserId);
-
+      const url = "{% url 'send_request' 0 %}".replace('0', toUserId);
       const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": getCSRFToken(),
-          "X-Requested-With": "XMLHttpRequest",
-          "Accept": "application/json",
-        },
-        body: JSON.stringify({}),
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken(), 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+        body: JSON.stringify({})
       });
-
       let json = null;
-      try {
-        json = await res.json();
-      } catch (e) {}
-
+      try { json = await res.json(); } catch (_) {}
       if (res.ok) {
-        btn.innerText = "Requested ✓";
-        btn.style.pointerEvents = "none";
-        btn.style.opacity = "0.75";
-        showToast(json?.message || "Request sent successfully");
+        btn.innerHTML = '<i class="fas fa-check"></i> Sent';
+        btn.style.opacity = '.7';
+        showToast(json?.message || 'Request sent!');
       } else {
-        showToast(json?.message || "Something went wrong", true);
-        btn.disabled = false;
-        btn.innerText = originalText;
+        showToast(json?.message || 'Something went wrong', true);
+        btn.disabled = false; btn.innerHTML = orig;
       }
-    } catch (err) {
-      console.error(err);
-      showToast("Network error. Please try again.", true);
-      btn.disabled = false;
-      btn.innerText = originalText;
+    } catch (e) {
+      showToast('Network error. Try again.', true);
+      btn.disabled = false; btn.innerHTML = orig;
     }
   }
-</script>
 
-<script>
-  // Disable right-click
-  document.addEventListener("contextmenu", e => e.preventDefault());
-
-  // Disable common save / inspect shortcuts
-  document.addEventListener("keydown", e => {
-    const blocked =
-      (e.ctrlKey && ["s", "u", "c", "x"].includes(e.key.toLowerCase())) ||
-      (e.ctrlKey && e.shiftKey && ["i", "j"].includes(e.key.toLowerCase())) ||
-      e.key === "F12";
-
-    if (blocked) {
-      e.preventDefault();
-      showToast("Action disabled for security", true);
-    }
+  // Security: blur on tab switch
+  const secureEl = document.getElementById('secure-content');
+  function blurIt() { if (secureEl) secureEl.classList.add('blur-secure'); }
+  function unblurIt() { if (secureEl) secureEl.classList.remove('blur-secure'); }
+  document.addEventListener('visibilitychange', () => document.hidden ? blurIt() : unblurIt());
+  window.addEventListener('blur', blurIt);
+  window.addEventListener('focus', unblurIt);
+  document.addEventListener('keyup', e => {
+    if (e.key === 'PrintScreen') { blurIt(); showToast('Screenshots are not allowed', true); setTimeout(unblurIt, 2000); }
+  });
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('keydown', e => {
+    const blocked = (e.ctrlKey && ['s','u','c','x'].includes(e.key.toLowerCase())) ||
+      (e.ctrlKey && e.shiftKey && ['i','j'].includes(e.key.toLowerCase())) || e.key === 'F12';
+    if (blocked) { e.preventDefault(); showToast('Action disabled for security', true); }
   });
 </script>
-
-
-{% endblock content %}
+{% endblock %}

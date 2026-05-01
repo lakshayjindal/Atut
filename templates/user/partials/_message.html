@@ -1,18 +1,29 @@
 {# partials/_message.html #}
-<div class="message bubble {% if msg.sender.id == request.user.id %}sent{% else %}received{% endif %}" data-id="{{ msg.id }}">
+<div class="msg {% if msg.sender.id == request.user.id %}sent{% else %}received{% endif %}" data-id="{{ msg.id }}">
   {% if msg.message %}
-    <p>{{ msg.message|linebreaksbr }}</p>
+    <p style="margin:0;word-break:break-word;">{{ msg.message|linebreaksbr }}</p>
   {% endif %}
 
-  {% if msg.attachment %}
-    {% with file_url=msg.attachment.url|lower %}
-      {% if ".jpg" in file_url or ".jpeg" in file_url or ".png" in file_url or ".gif" in file_url %}
-        <img src="{{ msg.attachment.url }}" alt="Attachment">
-      {% elif ".pdf" in file_url %}
-        <a href="{{ msg.attachment.url }}" target="_blank" class="file-link">📄 View PDF</a>
+  {% if msg.file_url %}
+    {% with url=msg.file_url|lower %}
+      {% if ".jpg" in url or ".jpeg" in url or ".png" in url or ".gif" in url or ".webp" in url %}
+        <img src="{{ msg.file_url }}" alt="Image" style="max-width:220px;border-radius:8px;margin-top:6px;display:block;">
+      {% elif ".pdf" in url %}
+        <a href="{{ msg.file_url }}" target="_blank" style="color:inherit;font-size:.8rem;display:flex;align-items:center;gap:4px;margin-top:4px;">
+          <i class="fas fa-file-pdf"></i> View PDF
+        </a>
       {% else %}
-        <a href="{{ msg.attachment.url }}" download class="file-link">📎 Download File</a>
+        <a href="{{ msg.file_url }}" download style="color:inherit;font-size:.8rem;display:flex;align-items:center;gap:4px;margin-top:4px;">
+          <i class="fas fa-paperclip"></i> Download File
+        </a>
       {% endif %}
     {% endwith %}
   {% endif %}
+
+  <div class="msg-meta">
+    {{ msg.timestamp|date:"g:i A" }}
+    {% if msg.sender.id == request.user.id %}
+      {% if msg.read_at %}<i class="fas fa-check-double" style="color:rgba(255,255,255,.7);font-size:.6rem;"></i>{% endif %}
+    {% endif %}
+  </div>
 </div>

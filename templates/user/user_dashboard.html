@@ -1,521 +1,432 @@
-{% extends "./base.html" %} {% load static %} {% block title %}User Dashboard |
-Vivah Sutra®{% endblock title %} {% block extra_head %}
+{% extends "./base.html" %}
+{% load static %}
+{% block title %}Dashboard | Vivah Sutra®{% endblock %}
+
+{% block extra_head %}
 <style>
-  body {
-    background: var(--color-primary-bg);
-    font-family: "Poppins", sans-serif;
-  }
+  /* ── Page layout ── */
+  .dash-wrap { max-width: 1280px; margin: 0 auto; }
 
-  /* Welcome section */
-  .welcome {
-    margin: 40px 60px 10px;
-    text-align: left;
+  /* ── Welcome header ── */
+  .dash-welcome {
+    margin-bottom: 24px;
   }
-
-  .welcome h2 {
+  .dash-welcome h2 {
+    font-size: clamp(1.2rem, 3vw, 1.6rem);
     font-weight: 600;
-    font-size: 28px;
-    color: var(--color-text-primary);
+    color: var(--text-1);
+    margin-bottom: 2px;
+  }
+  .dash-welcome .script-name {
+    font-family: 'Great Vibes', cursive;
+    font-size: clamp(1.8rem, 5vw, 2.6rem);
+    color: var(--rose);
+    line-height: 1;
+  }
+  .dash-welcome .subtitle {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(.9rem, 2vw, 1.05rem);
+    color: var(--text-2);
+    margin-top: 6px;
   }
 
-  .welcome span {
-    font-family: "Great Vibes", cursive;
-    font-size: 42px;
-    color: var(--color-accent-1);
-  }
-
-  .subtitle {
-    font-family: "Playfair Display", serif;
-    font-size: 20px;
-    margin: 0 60px 30px;
-    color: var(--color-text-secondary);
-  }
-
-  /* Profile grid */
-  .profiles {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 28px;
-    margin: 20px 60px;
-    padding-bottom: 60px;
-  }
-
-  .profile-card {
-    background: white;
-    border-radius: 18px;
-    overflow: hidden;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  /* ── Status banner ── */
+  .sub-banner {
+    border-radius: 14px;
+    padding: 18px 22px;
+    margin-bottom: 28px;
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: center;
     justify-content: space-between;
+    gap: 14px;
+  }
+  .sub-banner.premium {
+    background: linear-gradient(135deg, #fffbf0, #fff8e1);
+    border: 1px solid var(--gold-light);
+    border-left: 4px solid var(--gold);
+  }
+  .sub-banner.free {
+    background: var(--surface-2);
+    border: 1px solid var(--border-med);
+    border-left: 4px solid var(--text-3);
+  }
+  .sub-banner-info { display: flex; flex-wrap: wrap; gap: 10px 28px; }
+  .sub-stat {
+    display: flex; flex-direction: column;
+  }
+  .sub-stat .lbl { font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--text-3); }
+  .sub-stat .val { font-size: .95rem; font-weight: 600; color: var(--text-1); }
+  .sub-banner-title {
+    font-size: 1rem; font-weight: 700;
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 10px;
+  }
+  .sub-banner-title.gold { color: #8a6200; }
+  .sub-banner-title.muted { color: var(--text-2); }
+
+  /* ── Profile grid ── */
+  .profiles-section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+    color: var(--text-1);
+    margin-bottom: 18px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .profiles-section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    margin-left: 10px;
   }
 
-  .profile-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  .profiles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+    padding-bottom: 40px;
   }
+
+  /* ── Profile card ── */
+  .profile-card {
+    background: var(--surface);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-xs);
+    display: flex; flex-direction: column;
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .profile-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
 
   .profile-main-image {
-    width: 100%;
-    height: 240px;
+    width: 100%; height: 210px;
     object-fit: cover;
-    border-bottom: 2px solid var(--color-highlight);
+    border-bottom: 2px solid var(--border);
   }
 
   .profile-info {
-    padding: 16px;
+    padding: 14px 14px 10px;
+    flex: 1;
     text-align: center;
   }
-
   .profile-info h3 {
-    font-size: 18px;
-    margin-bottom: 6px;
-    font-weight: 600;
-    color: var(--color-text-primary);
+    font-size: .95rem; font-weight: 600;
+    color: var(--text-1); margin-bottom: 4px;
+  }
+  .profile-info .prof-tag {
+    font-size: .78rem; font-weight: 600;
+    color: var(--rose); margin-bottom: 4px;
+  }
+  .profile-info .prof-meta {
+    font-size: .78rem; color: var(--text-2);
+    margin: 2px 0; display: flex; align-items: center;
+    justify-content: center; gap: 4px;
+  }
+  .profile-info .prof-bio {
+    font-size: .75rem; color: var(--text-3);
+    font-style: italic; margin-top: 6px;
+    display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; overflow: hidden;
   }
 
-  .profile-info p {
-    margin: 3px 0;
-    font-size: 14px;
-    color: var(--color-text-secondary);
-  }
-
-  .profile-info p strong {
-    color: var(--color-text-primary);
-  }
-
-  /* Action buttons */
   .card-actions {
-    display: flex;
+    display: flex; gap: 8px;
+    padding: 10px 14px 14px;
     justify-content: center;
-    gap: 10px;
-    padding: 12px 0 18px;
   }
-
-  .btn {
-    padding: 8px 16px;
-    font-size: 14px;
-    font-weight: 500;
-    border-radius: 6px;
+  .card-actions .btn {
+    flex: 1; font-size: .78rem; padding: 8px 10px;
+    border-radius: 8px; font-weight: 600;
+    text-align: center; cursor: pointer;
+    transition: all .2s; border: none;
     text-decoration: none;
-    transition: all 0.2s ease;
   }
-
   .btn-view {
-    background: var(--color-secondary-bg);
-    color: var(--color-text-primary);
-    border: 1px solid var(--color-highlight);
+    background: var(--surface-2);
+    color: var(--text-1);
+    border: 1px solid var(--border-med) !important;
   }
-
-  .btn-view:hover {
-    background: var(--color-highlight);
-    color: white;
-  }
-
+  .btn-view:hover { background: var(--border); }
   .btn-connect {
-    background: var(--color-accent-1);
-    color: white;
-    border: none;
+    background: var(--rose); color: #fff;
   }
+  .btn-connect:hover { background: var(--rose-dark); }
+  .btn-connect:disabled { opacity: .55; cursor: not-allowed; }
 
-  .btn-connect:hover {
-    background: var(--color-accent-2);
-    color: var(--color-text-primary);
-  }
-
-  /* Empty state */
-  .no-profiles {
-    margin: 40px auto;
-    font-size: 17px;
-    color: var(--color-text-secondary);
+  /* ── Empty state ── */
+  .empty-state {
+    grid-column: 1 / -1;
     text-align: center;
+    padding: 60px 20px;
+    color: var(--text-2);
   }
+  .empty-state i { font-size: 2.5rem; color: var(--border-med); margin-bottom: 14px; }
+  .empty-state p { font-size: .95rem; }
 
-#toast {
-    position: fixed;
-    bottom: 25px;
-    right: 25px;
-    background: #28a745;
-    color: white;
-    padding: 12px 16px;
-    border-radius: 8px;
-    font-size: 14px;
-    opacity: 0;
-    pointer-events: none;
-    transition: all .35s ease;
-    z-index: 2000;
+  /* ── Toast ── */
+  #toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--text-1); color: #fff;
+    padding: 12px 18px; border-radius: 12px;
+    font-size: .875rem; font-weight: 500;
+    opacity: 0; pointer-events: none;
+    transform: translateY(8px);
+    transition: all .3s ease; z-index: 9999;
+    box-shadow: var(--shadow-lg); max-width: 300px;
   }
-  #toast.show { opacity: 1; transform: translateY(-8px); pointer-events: auto; }
-  #toast.error { background: #d9534f; }
-/* --- Background Overlay --- */
-.termsModal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0,0,0,0.55);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 4000;
-  animation: fadeIn .4s ease;
-}
+  #toast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  #toast.error { background: var(--rose-dark); }
+  #toast.success { background: var(--sage); }
 
-.termsModal.active {
-  display: flex;
-}
+  /* ── Terms Modal ── */
+  .terms-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.5);
+    display: none; align-items: center; justify-content: center;
+    z-index: 5000; padding: 20px;
+    animation: fadeIn .3s ease;
+  }
+  .terms-overlay.active { display: flex; }
+  .terms-modal {
+    background: var(--surface);
+    border-radius: 18px;
+    padding: 28px;
+    width: 100%; max-width: 500px;
+    max-height: 85vh;
+    display: flex; flex-direction: column;
+    box-shadow: var(--shadow-lg);
+    animation: slideUp .3s ease;
+  }
+  .terms-modal h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem; color: var(--text-1);
+    margin-bottom: 6px;
+  }
+  .terms-modal .sub { font-size: .82rem; color: var(--text-2); margin-bottom: 16px; }
+  .terms-body {
+    flex: 1; overflow-y: auto;
+    font-size: .875rem; color: var(--text-2);
+    line-height: 1.65; margin-bottom: 18px;
+    padding-right: 4px;
+  }
+  .terms-body p { margin-bottom: 10px; }
+  .terms-accept-btn {
+    width: 100%; background: var(--rose); color: #fff;
+    border: none; padding: 13px; border-radius: 10px;
+    font-size: .95rem; font-weight: 600; cursor: pointer;
+    transition: background .2s;
+  }
+  .terms-accept-btn:hover { background: var(--rose-dark); }
 
-/* --- Modal Card --- */
-.termsModalContent {
-  width: 90%;
-  max-width: 520px;
-  background: #fff;
-  border-radius: 14px;
-  padding: 22px 26px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-  animation: slideUp .35s ease;
-  max-height: 85vh;
-  display: flex;
-  flex-direction: column;
-}
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-/* --- Modal Header --- */
-.modalHead h2 {
-  margin: 0 0 6px;
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-
-.modalHead p {
-  margin: 0 0 12px;
-  color: var(--color-text-secondary);
-  font-size: 14px;
-}
-
-/* --- Scrollable Content --- */
-.modalBody {
-  flex: 1;
-  overflow-y: auto;
-  padding-right: 6px;
-  color: var(--color-text-secondary);
-  font-size: 15px;
-  line-height: 1.5;
-  margin-bottom: 18px;
-}
-
-/* --- Footer Button --- */
-.acceptBtn {
-  width: 100%;
-  background: var(--color-accent-1);
-  color: white;
-  border: none;
-  padding: 12px 18px;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.25s ease;
-}
-
-.acceptBtn:hover {
-  background: var(--color-accent-2);
-}
-
-/* --- Animations --- */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from { transform: translateY(30px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    .profiles-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
+    .profile-main-image { height: 170px; }
+    .sub-banner { flex-direction: column; }
+  }
 </style>
-{% endblock extra_head %} {% block content %}
-<div class="welcome">
-  <h2>Namaskar, <span>{{ user_name|title }}</span></h2>
-</div>
-{% if is_premium %}
-<div style="margin: 0 60px 20px; padding: 18px; border-radius: 12px; background: #eaffea; border-left: 6px solid #28a745;">
-    <h3 style="margin: 0; font-weight: 600; color: #155724;">
-        ⭐ Premium Member {% if has_verified_badge %}<span style="color:#007bff;">✔ Verified</span>{% endif %}
-    </h3>
+{% endblock %}
 
-    <p style="margin: 4px 0; color: #1b5e20;">
-        Plan: <strong>{{ plan_name }}</strong>
-    </p>
+{% block content %}
+<div class="dash-wrap">
 
-    <p style="margin: 4px 0; color: #1b5e20;">
-        Expires: <strong>{{ plan_expiry }}</strong>
-    </p>
+  <!-- Welcome -->
+  <div class="dash-welcome">
+    <h2>Namaskar, <span class="script-name">{{ user_name|title }}</span></h2>
+    <p class="subtitle">Here are some profiles we think you'll like</p>
+  </div>
 
-    <p style="margin: 4px 0; color: #1b5e20;">
-        Messages Today: 
-        <strong>{{ remaining_messages }}</strong>
-    </p>
-
-    <p style="margin: 4px 0; color: #1b5e20;">
-        Requests Left Today: 
-        <strong>{{ remaining_requests }}</strong>
-    </p>
-
-    {% if can_view_phone %}
-    <p style="margin: 4px 0; color: #1b5e20;">📞 You can view phone numbers</p>
-    {% endif %}
-
-    {% if can_request_phone %}
-    <p style="margin: 4px 0; color: #1b5e20;">📩 You can request phone numbers</p>
-    {% endif %}
-</div>
-
-{% else %}
-<div style="margin: 0 60px 20px; padding: 18px; border-radius: 12px; background: #fff8e1; border-left: 6px solid #fbc02d;">
-    <h3 style="margin: 0; font-weight: 600; color: #b36b00;">
-        ⚠ Free Account
-    </h3>
-
-    <p style="margin: 4px 0; color: #7a5a2e;">
-        Daily Chats Left:
-        <strong>{{ remaining_messages }} / {{ max_free_messages }}</strong>
-    </p>
-
-    <p style="margin: 4px 0; color: #7a5a2e;">
-        Requests Left Today:
-        <strong>{{ remaining_requests }} / {{ max_free_requests }}</strong>
-    </p>
-
-    <a href="{% url 'plans_list' %}" 
-       style="margin-top: 8px; display:inline-block; padding:10px 16px; background:#ff9800; color:white; border-radius:6px; text-decoration:none;">
-      Upgrade to Premium
+  <!-- Subscription Banner -->
+  {% if is_premium %}
+  <div class="sub-banner premium">
+    <div>
+      <div class="sub-banner-title gold">
+        <span>⭐ Premium Member</span>
+        {% if has_verified_badge %}<span style="color:var(--sage);font-size:.85rem;">✔ Verified</span>{% endif %}
+      </div>
+      <div class="sub-banner-info">
+        <div class="sub-stat">
+          <span class="lbl">Plan</span>
+          <span class="val">{{ plan_name }}</span>
+        </div>
+        <div class="sub-stat">
+          <span class="lbl">Expires</span>
+          <span class="val">{{ plan_expiry }}</span>
+        </div>
+        <div class="sub-stat">
+          <span class="lbl">Messages Today</span>
+          <span class="val">{{ remaining_messages }}</span>
+        </div>
+        <div class="sub-stat">
+          <span class="lbl">Requests Left</span>
+          <span class="val">{{ remaining_requests }}</span>
+        </div>
+        {% if can_view_phone %}
+        <div class="sub-stat">
+          <span class="lbl">Phone Access</span>
+          <span class="val">📞 Enabled</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="sub-banner free">
+    <div>
+      <div class="sub-banner-title muted">Free Account</div>
+      <div class="sub-banner-info">
+        <div class="sub-stat">
+          <span class="lbl">Daily Chats</span>
+          <span class="val">{{ remaining_messages }} / {{ max_free_messages }}</span>
+        </div>
+        <div class="sub-stat">
+          <span class="lbl">Requests Left</span>
+          <span class="val">{{ remaining_requests }} / {{ max_free_requests }}</span>
+        </div>
+      </div>
+    </div>
+    <a href="{% url 'plans_list' %}" class="btn btn-primary btn-pill" style="white-space:nowrap;">
+      <i class="fas fa-crown"></i> Upgrade to Premium
     </a>
+  </div>
+  {% endif %}
+
+  <!-- Profiles -->
+  <div class="profiles-section-title">Suggested Profiles</div>
+
+  <div class="profiles-grid">
+    {% for profile in matched_profiles %}
+    <div class="profile-card">
+      {% with first_pic=profile.user.pictures.first %}
+        {% if first_pic %}
+          <img src="{{ first_pic.picture_url }}" alt="{{ profile.full_name }}" class="profile-main-image">
+        {% elif profile.gender == "Male" %}
+          <img src="{{ DEFAULT_MALE_FALLBACK_URL }}" alt="Default" class="profile-main-image">
+        {% else %}
+          <img src="{{ DEFAULT_FEMALE_FALLBACK_URL }}" alt="Default" class="profile-main-image">
+        {% endif %}
+      {% endwith %}
+
+      <div class="profile-info">
+        <h3>
+          {{ profile.full_name }}
+          {% if profile.user.subscription and profile.user.subscription.has_active_subscription %}
+            <span style="color:var(--gold);">⭐</span>
+          {% endif %}
+        </h3>
+        <div class="prof-tag">{{ profile.profession }}</div>
+        <div class="prof-meta"><i class="fas fa-map-marker-alt" style="color:var(--rose);font-size:.7rem;"></i> {{ profile.city }}</div>
+        <div class="prof-meta">{{ profile.age }} yrs &nbsp;·&nbsp; {{ profile.education }}</div>
+        {% if profile.bio %}<div class="prof-bio">{{ profile.bio }}</div>{% endif %}
+      </div>
+
+      <div class="card-actions">
+        <a href="{% url 'profile_detail' profile.id %}" class="btn btn-view">View</a>
+        <button class="btn btn-connect"
+          onclick="sendRequest('{{ profile.user.id }}', this)"
+          {% if remaining_requests == 0 %}disabled{% endif %}>
+          {% if remaining_requests == 0 %}Limit Reached{% else %}Connect{% endif %}
+        </button>
+      </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+      <i class="fas fa-heart-broken"></i>
+      <p>No matching profiles found right now. Check back soon 🙏</p>
+    </div>
+    {% endfor %}
+  </div>
+
 </div>
-{% endif %}
 
-
+<!-- Toast -->
 <div id="toast"></div>
 
-<div class="subtitle">We have some profiles for you</div>
-
-<div class="profiles">
-  {% for profile in matched_profiles %}
-  <div class="profile-card">
-    {% with first_pic=profile.user.pictures.first %} {% if first_pic %}
-    <img
-      src="{{ first_pic.picture_url }}"
-      alt="{{ profile.full_name }}"
-      class="profile-main-image"
-    />
-    {% else %} {% if profile.gender == "Male" %}
-    <img
-      src="{{ DEFAULT_MALE_FALLBACK_URL }}"
-      alt="Default Male Profile"
-      class="profile-main-image"
-    />
-    {% else %}
-    <img
-      src="{{ DEFAULT_FEMALE_FALLBACK_URL }}"
-      alt="Default Female Profile"
-      class="profile-main-image"
-    />
-    {% endif %} {% endif %} {% endwith %}
-
-    <div class="profile-info">
-      <h3>
-    {{ profile.full_name }}
-    {% if profile.user.subscription and profile.user.subscription.has_active_subscription %}
-        <span style="color:#ffc107;">⭐</span>
-    {% endif %}
-</h3>
-
-      <p><strong>{{ profile.profession }}</strong></p>
-      <p>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 200 200"
-          xml:space="preserve"
-          width="40"
-          height="40"
-        >
-          <path
-            fill="var(--color-accent-1)"
-            d="M100.232 149.198c-2.8 0-5.4-1.8-7.2-5.2-22.2-41-22.4-41.4-22.4-41.6-3.2-5.1-4.9-11.3-4.9-17.6 0-19.1 15.5-34.6 34.6-34.6s34.6 15.5 34.6 34.6c0 6.5-1.8 12.8-5.2 18.2 0 0-1.2 2.4-22.2 41-1.9 3.4-4.4 5.2-7.3 5.2z"
-          />
-          <path
-            fill="var(--color-secondary-bg)"
-            d="M100.332 105.598c-10.6 0-19.1-8.6-19.1-19.1s8.5-19.2 19.1-19.2c10.6 0 19.1 8.6 19.1 19.1s-8.6 19.2-19.1 19.2z"
-          />
-        </svg>
-        {{ profile.city }}
-      </p>
-      <p>👤 {{ profile.age }}</p>
-      <p>{{ profile.education }}</p>
-      <p><em>{{ profile.bio|truncatewords:10 }}</em></p>
+<!-- Terms Modal -->
+<div class="terms-overlay" id="termsModal">
+  <div class="terms-modal">
+    <h2>Terms &amp; Conditions</h2>
+    <p class="sub">Please read carefully before using the platform.</p>
+    <div class="terms-body">
+      <p>Welcome to Vivah Sutra®! By continuing, you agree to follow all guidelines outlined by the platform. These include respecting other users, using the platform responsibly, and complying with all applicable rules and regulations.</p>
+      <p>Misuse of the platform, including harassment, misinformation, or attempts to manipulate the system, will result in suspension or account termination.</p>
+      <p>We value your privacy and ensure your data is handled securely. You may contact support for any concerns.</p>
+      <p>By clicking <strong>Accept &amp; Continue</strong>, you confirm that you have read and agreed to the Terms &amp; Conditions.</p>
     </div>
-
-    <div class="card-actions">
-      <a href="{% url 'profile_detail' profile.id %}" class="btn btn-view"
-        >View Profile</a
-      >
-     <button class="btn btn-connect"
-        onclick="sendRequest('{{ profile.user.id }}', this)"
-        {% if remaining_requests == 0 %}disabled style="opacity:0.6;"{% endif %}>
-    {% if remaining_requests == 0 %}
-        Limit Reached
-    {% else %}
-        Connect
-    {% endif %}
-</button>
-
-    </div>
-  </div>
-  {% empty %}
-  <p class="no-profiles">
-    No matching profiles found. Please check back later 🙏
-  </p>
-  {% endfor %}
-</div>
-
-<<!-- TERMS MODAL -->
-<div class="termsModal" id="termsModal">
-  <div class="termsModalContent">
-
-    <!-- Header -->
-    <div class="modalHead">
-      <h2>Terms & Conditions</h2>
-      <p>Please read the following terms carefully before using the platform.</p>
-    </div>
-
-    <!-- Scrollable Content -->
-    <div class="modalBody">
-      <p>
-        Welcome to our platform! By continuing, you agree to follow all guidelines 
-        outlined by the company. These include respecting other users, using the 
-        platform responsibly, and complying with all applicable rules and regulations.
-      </p>
-
-      <p>
-        Misuse of the platform, including harassment, misinformation, or 
-        attempts to manipulate the system, will result in suspension or account termination.
-      </p>
-
-      <p>
-        We value your privacy and ensure your data is handled securely. You may 
-        contact support for any concerns.
-      </p>
-
-      <p>
-        By clicking **Accept & Continue**, you confirm that you have read and agreed 
-        to the Terms & Conditions.
-      </p>
-    </div>
-
-    <!-- Footer -->
-    <div class="modalFooter">
-      <button id="acceptTermsBtn" class="acceptBtn">
-        Accept & Continue
-      </button>
-    </div>
-
+    <button id="acceptTermsBtn" class="terms-accept-btn">Accept &amp; Continue</button>
   </div>
 </div>
+{% endblock %}
 
-
-{% endblock content %} {% block extra_scripts %}
+{% block extra_scripts %}
 <script>
-  function showToast(msg, isError=false) {
+  function showToast(msg, isError = false) {
     const t = document.getElementById('toast');
     t.textContent = msg;
-    t.className = ''; // reset
-    if (isError) t.classList.add('error');
+    t.className = isError ? 'error' : 'success';
     t.classList.add('show');
-    setTimeout(() => { t.classList.remove('show'); t.classList.remove('error'); }, 3000);
+    setTimeout(() => t.classList.remove('show'), 3200);
   }
 
   function getCSRFToken() {
-    // Read cookie 'csrftoken' (Django default)
-    return document.cookie.split('; ').reduce((acc, cookie) => {
-      const [name, val] = cookie.split('=');
-      return name === 'csrftoken' ? decodeURIComponent(val) : acc;
+    return document.cookie.split('; ').reduce((acc, c) => {
+      const [k, v] = c.split('=');
+      return k === 'csrftoken' ? decodeURIComponent(v) : acc;
     }, '');
   }
 
   async function sendRequest(toUserId, btn) {
-    // defensive: don't re-send if already disabled
     if (btn.disabled) return;
-
     btn.disabled = true;
-    const originalText = btn.innerText;
-    btn.innerText = 'Sending...';
-
+    const orig = btn.innerText;
+    btn.innerText = '…';
     try {
-        url = "{% url 'send_request' 0 %}"
-      const res = await fetch(url.replace("0", toUserId), {
+      const url = "{% url 'send_request' 0 %}".replace('0', toUserId);
+      const res = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRFToken': getCSRFToken(),
-          'X-Requested-With': 'XMLHttpRequest', // important for server to detect AJAX
+          'X-Requested-With': 'XMLHttpRequest',
           'Accept': 'application/json'
         },
-        body: JSON.stringify({}) // empty body is OK
+        body: JSON.stringify({})
       });
-
-      // Try to parse JSON even for non-2xx so we can show message
       let json = null;
-      try { json = await res.json(); } catch (e) { /* invalid JSON */ }
-
+      try { json = await res.json(); } catch (_) {}
       if (res.ok) {
-        // success (200)
-        const msg = (json && json.message) ? json.message : 'Request sent.';
-        btn.innerText = 'Requested ✓';
-        btn.style.pointerEvents = 'none';
-        btn.style.opacity = '0.75';
-        showToast(msg, false);
+        btn.innerText = 'Sent ✓';
+        btn.style.opacity = '.65';
+        showToast(json?.message || 'Request sent!', false);
       } else {
-        // non-OK: show server message if present, otherwise generic
-        const msg = (json && json.message) ? json.message : `Server returned ${res.status}`;
-        showToast(msg, true);
-        // restore button so user can try again
+        showToast(json?.message || `Error ${res.status}`, true);
         btn.disabled = false;
-        btn.innerText = originalText;
+        btn.innerText = orig;
       }
-    } catch (networkErr) {
-      console.error('Network or JS error:', networkErr);
-      showToast('Network error. Please try again.', true);
+    } catch (e) {
+      showToast('Network error. Try again.', true);
       btn.disabled = false;
-      btn.innerText = originalText;
+      btn.innerText = orig;
     }
   }
-</script>
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-    const hasAcceptedTerms = {{ has_accepted_terms|yesno:"true,false" }};
+  // Terms modal
+  document.addEventListener('DOMContentLoaded', () => {
+    const accepted = {{ has_accepted_terms|yesno:"true,false" }};
+    if (!accepted) document.getElementById('termsModal').classList.add('active');
+  });
 
-    if (!hasAcceptedTerms) {
-        document.getElementById("termsModal").classList.add("active");
-    }
-});
-
-document.getElementById("acceptTermsBtn").addEventListener("click", () => {
-  document.getElementById("termsModal").classList.remove("active");
+  document.getElementById('acceptTermsBtn').addEventListener('click', () => {
+    document.getElementById('termsModal').classList.remove('active');
     fetch("{% url 'accept_terms' %}", {
-        method: "POST",
-        headers: {
-            "X-CSRFToken": getCSRFToken(),
-            "X-Requested-With": "XMLHttpRequest"
-        }
-    }).then(() => {
-        showToast("Thank you for accepting the terms!", false);
-    });
-});
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCSRFToken(), 'X-Requested-With': 'XMLHttpRequest' }
+    }).then(() => showToast('Thank you for accepting the terms!', false));
+  });
 </script>
-
-
-
 {% endblock %}
