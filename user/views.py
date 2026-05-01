@@ -486,7 +486,7 @@ def forgot_password_view(request):
                 reverse('reset_password', kwargs={'uidb64': uid, 'token': token})
             )
 
-            subject = "Reset Your Atut Vidhan Password"
+            subject = "Reset Your Vivah Sutra Password"
 
             html_content = f"""
                 <div style="font-family: Arial, sans-serif; color: #333;">
@@ -509,7 +509,7 @@ def forgot_password_view(request):
                 <p style="font-size: 0.9rem; color: #555;">
                     If you didn’t request this, just ignore this email.
                 </p>
-                <p style="margin-top: 32px;">With ❤️,<br><strong>Atut Vidhan Team</strong></p>
+                <p style="margin-top: 32px;">With ❤️,<br><strong>Vivah Sutra Team</strong></p>
                 </div>
                 """
 
@@ -551,19 +551,19 @@ def reset_password_view(request, uidb64, token):
                 user.set_password(new_password)
                 user.save()
                 messages.success(request, "Password reset successful. You can now log in.")
-                subject = "Your Atut Vidhan Password Was Changed ✅"
+                subject = "Your Vivah Sutra Password Was Changed ✅"
 
                 html_content = f"""
                 <div style="font-family: Arial, sans-serif; color: #333;">
                 <h2 style="color: #2f855a;">✅ Password Changed Successfully</h2>
                 <p>Hi {user.first_name or user.username},</p>
-                <p>Your password was changed for your <strong>Atut Vidhan</strong> account.</p>
+                <p>Your password was changed for your <strong>Vivah Sutra</strong> account.</p>
 
                 <p style="font-size: 0.9rem; color: #555;">
                     If you didn't make this change, please contact support immediately.
                 </p>
 
-                <p style="margin-top: 32px;">Regards,<br><strong>Atut Vidhan Team</strong></p>
+                <p style="margin-top: 32px;">Regards,<br><strong>Vivah Sutra Team</strong></p>
                 </div>
                 """
 
@@ -610,7 +610,7 @@ def magic_login(request, uidb64, token):
 
 def send_otp_email(user):
     """Send a styled OTP email asynchronously."""
-    subject = "✨ Welcome to Atut Vidhan - Your OTP to Begin Your Journey"
+    subject = "✨ Welcome to Vivah Sutra - Your OTP to Begin Your Journey"
 
     html_content = render_to_string("emails/otp_email.html", {
         "user": user,

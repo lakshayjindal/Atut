@@ -14,3 +14,5 @@ application = ProtocolTypeRouter({
         )
     ),
 })
+
+print("USED ASGI")

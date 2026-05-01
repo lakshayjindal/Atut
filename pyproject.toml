@@ -1,7 +1,7 @@
 [project]
-name = "atut-vidhan"
+name = "Vivah-Sutra"
 version = "1.0.0"
-description = "Atut Vidhan Matrimony Django ASGI App"
+description = "Vivah Sutra Matrimony Django ASGI App"
 authors = [
     { name = "Lakshay Jindal" }
 ]

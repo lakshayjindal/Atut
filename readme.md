@@ -1,6 +1,6 @@
 # Deployment & Operations Guide
 
-**Project:** Atut Vidhan
+**Project:** Vivah Sutra
 **Stack:** Django (ASGI) + PostgreSQL + AWS EC2
 
 ---
@@ -32,8 +32,8 @@ The instructions assume familiarity with Linux, SSH, Python, and PostgreSQL.
 ### 2.2 Project Setup
 
 ```bash
-git clone https://github.com/juricerp/Atut-Python.git
-cd Atut-Python
+git clone https://github.com/juricerp/Vivah-Python.git
+cd Vivah-Python
 ```
 
 Create and activate a virtual environment:
@@ -58,7 +58,7 @@ Create a `.env` file in the project root:
 ```env
 DEBUG=True
 
-DB_NAME=Atut_db
+DB_NAME=Vivah_db
 DB_USER=postgres
 DB_PASSWORD=postgres
 DB_HOST=localhost
@@ -73,7 +73,7 @@ Create the PostgreSQL database:
 
 ```bash
 sudo -u postgres psql
-CREATE DATABASE Atut_db;
+CREATE DATABASE Vivah_db;
 ```
 
 Apply migrations:
@@ -119,7 +119,7 @@ key.pem should be requested by the devloper
 The application is expected to reside at:
 
 ```
-/home/ubuntu/Atut
+/home/ubuntu/Vivah
 ```
 
 ---
@@ -129,7 +129,7 @@ The application is expected to reside at:
 Navigate to the project directory:
 
 ```bash
-cd Atut
+cd Vivah
 ```
 
 Pull the latest changes:

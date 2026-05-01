@@ -66,7 +66,6 @@ TEMPLATES = [
 
 # === ASGI / WSGI ===
 ASGI_APPLICATION = "main.asgi.application"
-WSGI_APPLICATION = 'main.wsgi.application'
 
 # === DATABASE ===
 
@@ -74,9 +73,9 @@ if os.environ.get("DJANGO_ENV", "") == "prod":
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql_psycopg2",
-            "NAME": "atutvidhan",
-            "USER": "atutvidhan",
-            "PASSWORD": "AtutVidhan",
+            "NAME": "VivahSutra",
+            "USER": "VivahSutra",
+            "PASSWORD": "VivahSutra",
             "HOST": "localhost",
             "PORT": "",
         }
@@ -130,7 +129,7 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True
-EMAIL_HOST_USER = "atutvidhanmatrimony@gmail.com"
+EMAIL_HOST_USER = "VivahSutramatrimony@gmail.com"
 EMAIL_HOST_PASSWORD = "htynyxqhcfpzapvt"
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
@@ -143,7 +142,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://*.railway.app",
     "https://*.up.railway.app",
     "https://*.onrender.com",
-    "https://atutvidhan.com",
+    "https://VivahSutra.com",
 ]
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 

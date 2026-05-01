@@ -17,8 +17,8 @@ from .models import User, Profile, Picture
 from . import utils
 from .utils import upload_to_supabase
 
-admin.site.site_header = "Atut Vidhan Admin"
-admin.site.site_title = "Atut Vidhan"
+admin.site.site_header = "Vivah Sutra Admin"
+admin.site.site_title = "Vivah Sutra"
 admin.site.index_title = "Welcome to Website Management"
 
 class CsvImportForm(forms.Form):
@@ -47,7 +47,7 @@ def send_link(modeladmin, request, queryset):
         text_content = f"""
 Hi {user.first_name or user.username},
 
-Use the login link below to access your Atut Vidhan account:
+Use the login link below to access your Vivah Sutra account:
 
 {login_url}
 
@@ -76,7 +76,7 @@ If you did not request this login link, please ignore this message.
             <p style="font-size: 0.9rem; color: #555;">
                 If you didn’t request this, just ignore this email.
             </p>
-            <p style="margin-top: 32px;">With ❤️,<br><strong>Atut Vidhan Team</strong></p>
+            <p style="margin-top: 32px;">With ❤️,<br><strong>Vivah Sutra Team</strong></p>
             </div>
         """
 

@@ -3,7 +3,7 @@
 # Exit on error
 set -e
 
-echo "🔥 Starting Atut Vidhan Django ASGI Server..."
+echo "🔥 Starting Vivah Sutra Django ASGI Server..."
 
 # Apply database migrations
 echo "🗃️ Applying database migrations..."
