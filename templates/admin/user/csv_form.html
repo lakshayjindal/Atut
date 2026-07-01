@@ -1,40 +1,22 @@
 {% extends "admin/base_site.html" %}
-
 {% block content %}
-<div style="
-    max-width: 600px;
-    margin: 40px auto;
-    background: #FFF8F2; /* Ivory Blush */
-    padding: 30px;
-    border-radius: 16px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    font-family: Arial, sans-serif;
-    color: #2F2F2F; /* Charcoal Silk */
-">
-  <h2 style="color: #D72638; margin-bottom: 20px; text-align: center;">
-    📂 Upload CSV to Create Users
-  </h2>
+<div style="max-width:520px;margin:32px auto;">
+  <div style="background:#fff;border:1px solid #E2E8EB;border-radius:14px;padding:32px;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+    <h2 style="font-family:'Playfair Display',serif;color:#1A6B72;margin:0 0 6px;font-size:1.4rem;">Import Users via CSV</h2>
+    <p style="color:#4A6370;font-size:.85rem;margin:0 0 24px;">Upload a CSV file to bulk-create users and profiles.</p>
 
-  <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    <div style="margin-bottom: 20px;">
-      {{ form.as_p }}
-    </div>
-
-    <button type="submit" style="
-      display: inline-block;
-      background: #D72638; /* Royal Rose */
-      color: #fff;
-      font-weight: bold;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    ">
-      🚀 Upload
-    </button>
-  </form>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div style="margin-bottom:18px;">{{ form.as_p }}</div>
+      <button type="submit" style="
+        background:#1A6B72;color:#fff;border:none;
+        padding:11px 24px;border-radius:8px;
+        font-size:.9rem;font-weight:600;cursor:pointer;
+        transition:background .2s;
+      " onmouseover="this.style.background='#124E54'" onmouseout="this.style.background='#1A6B72'">
+        Upload &amp; Preview
+      </button>
+    </form>
+  </div>
 </div>
 {% endblock %}

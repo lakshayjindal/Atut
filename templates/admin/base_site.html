@@ -3,81 +3,175 @@
 {% block title %}Vivah Sutra Admin{% endblock %}
 
 {% block branding %}
-<h1 id="site-name"><a href="/admin">Vivah Sutra® Admin</a></h1>
+<h1 id="site-name"><a href="/admin/">Vivah Sutra® Admin</a></h1>
 {% endblock %}
 
 {% block extrahead %}
 {{ block.super }}
-<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <style>
-   :root {
-  /* === Core Theme (shared across modes) === */
-  --primary: #D72638;   /* Royal Rose - primary actions, links */
-  --secondary: #F4C95D; /* Golden Sand - accents/warnings */
-  --accent: #FF7B5C;    /* Coral highlight */
+  /* ── Design tokens ── */
+  :root {
+    --brand:        #1A6B72;
+    --brand-dark:   #124E54;
+    --brand-mid:    #2A8F98;
+    --brand-tint:   #EBF6F7;
+    --amber:        #C8832A;
+    --amber-light:  #F5DEB3;
+    --emerald:      #2E7D5E;
+    --error-color:  #C0392B;
 
-  /* === States === */
-  --success: #4CAF70;   /* Eucalyptus green */
-  --warning: #E6B84C;   /* Warm amber */
-  --error: #FF4C4C;     /* Bright red */
+    /* Django admin overrides */
+    --primary:            #1A6B72;
+    --secondary:          #2A8F98;
+    --accent:             #C8832A;
+    --primary-fg:         #fff;
 
-  /* === Borders & Shadows === */
-  --border-radius: 6px;
-  --box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+    --body-fg:            #1C2B30;
+    --body-bg:            #F7F9FA;
+    --body-quiet-color:   #4A6370;
+    --body-loud-color:    #1C2B30;
 
-  /* === Fonts === */
-  --font-family-primary: 'Poppins', sans-serif;
-  --font-family-secondary: 'Playfair Display', serif;
-  --font-family-monospace: monospace;
+    --header-color:       #fff;
+    --header-branding-color: #fff;
+    --header-bg:          #1A6B72;
+    --header-link-color:  #fff;
 
-  --font-size: 14px;
-  --font-size-sm: 13px;
-  --font-size-lg: 16px;
+    --breadcrumbs-fg:     #4A6370;
+    --breadcrumbs-link-fg:#1A6B72;
+    --breadcrumbs-bg:     #EBF6F7;
 
-  /* === Spacing === */
-  --spacing: 16px;
-}
+    --link-fg:            #1A6B72;
+    --link-hover-color:   #124E54;
+    --link-selected-fg:   #1A6B72;
 
-/* 🌑 Dark Mode */
-   @media (prefers-color-scheme: dark) {
-       :root {
-           --body-bg: #1E1E1E; /* Rich dark gray */
-           --darkened-bg: #2A2A2A; /* Panels */
-           --header-bg: #252525;
-           --header-color: #FFFFFF;
+    --hairline-color:     #E2E8EB;
+    --border-color:       #C8D3D8;
 
-           --body-fg: #EAEAEA; /* Bright text */
-           --body-quiet-color: #9A9A9A; /* Muted gray */
+    --darkened-bg:        #EEF2F4;
+    --selected-bg:        #EBF6F7;
+    --selected-row:       #EBF6F7;
 
-           --link-fg: #FF5C5C;
-           --link-hover-color: #FF8A8A;
+    --button-fg:          #fff;
+    --button-bg:          #1A6B72;
+    --button-hover-bg:    #124E54;
+    --default-button-bg:  #1A6B72;
+    --default-button-hover-bg: #124E54;
+    --close-button-bg:    #C0392B;
+    --close-button-hover-bg: #922b21;
+    --delete-button-bg:   #C0392B;
+    --delete-button-hover-bg: #922b21;
 
-           --selected-bg: #3A1F22; /* Muted dark red */
-           --selected-fg: #FFFFFF;
+    --object-tools-fg:    #fff;
+    --object-tools-bg:    #2A8F98;
+    --object-tools-hover-bg: #1A6B72;
 
-           --border-color: #3C3C3C;
-           --box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
-       }
-   }
-/* ☀️ Light Mode */
-@media (prefers-color-scheme: light) {
+    --font-family-primary: 'Inter', system-ui, sans-serif;
+    --font-family-secondary: 'Playfair Display', serif;
+    --font-size: 14px;
+    --font-size-sm: 13px;
+    --border-radius: 6px;
+    --box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    --spacing: 16px;
+  }
+
+  /* Dark mode */
+  @media (prefers-color-scheme: dark) {
     :root {
-        --body-bg: #FFFFFF;       /* Pure white */
-        --darkened-bg: #FAFAFA;   /* Panels / forms */
-        --header-bg: #F5F5F5;
-        --header-color: #1E1E1E;
-
-        --body-fg: #2F2F2F;          /* Dark text */
-        --body-quiet-color: #6C6C6C; /* Muted gray */
-
-        --link-fg: #D72638;
-        --link-hover-color: #FF5C5C;
-
-        --selected-bg: #FFF2F2;   /* Light red wash */
-        --selected-fg: #2F2F2F;
-
-        --border-color: #E0E0E0;
-        --box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      --body-bg:          #0F1E22;
+      --darkened-bg:      #162830;
+      --header-bg:        #0D4A50;
+      --body-fg:          #D4E8EA;
+      --body-quiet-color: #7AABB0;
+      --hairline-color:   #1E3A40;
+      --border-color:     #2A4A50;
+      --selected-bg:      #1A3A40;
+      --selected-row:     #1A3A40;
+      --breadcrumbs-bg:   #162830;
+      --link-fg:          #4ABBC4;
+      --link-hover-color: #7AD4DB;
     }
+  }
+
+  /* ── Global type ── */
+  body, input, select, textarea, button {
+    font-family: var(--font-family-primary) !important;
+  }
+
+  /* ── Header ── */
+  #header {
+    background: var(--header-bg);
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  }
+  #branding h1, #branding h1 a {
+    font-family: var(--font-family-secondary) !important;
+    font-size: 1.3rem;
+    letter-spacing: .3px;
+  }
+
+  /* ── Buttons ── */
+  .button, input[type=submit], input[type=button], .submit-row input, a.button {
+    border-radius: var(--border-radius) !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    transition: background .18s ease, transform .15s ease !important;
+  }
+  .button:hover, input[type=submit]:hover {
+    transform: translateY(-1px);
+  }
+
+  /* ── Tables ── */
+  #result_list thead th {
+    background: var(--darkened-bg);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--body-quiet-color);
+  }
+  #result_list tbody tr:hover td {
+    background: var(--selected-row) !important;
+  }
+
+  /* ── Approve / Reject inline buttons ── */
+  a.button[style*="2ecc71"], a.button[style*="28a745"] {
+    background: var(--emerald) !important;
+    border-radius: 5px !important;
+    padding: 4px 12px !important;
+    font-size: 12px !important;
+    color: #fff !important;
+  }
+  a.button[style*="e74c3c"], a.button[style*="dc3545"] {
+    background: var(--error-color) !important;
+    border-radius: 5px !important;
+    padding: 4px 12px !important;
+    font-size: 12px !important;
+    color: #fff !important;
+  }
+
+  /* ── Module headers ── */
+  .module h2, .module caption, .inline-group h2 {
+    background: var(--brand) !important;
+    color: #fff !important;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    font-family: var(--font-family-primary) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    letter-spacing: .3px;
+  }
+
+  /* ── Breadcrumbs ── */
+  div.breadcrumbs {
+    background: var(--breadcrumbs-bg);
+    color: var(--breadcrumbs-fg);
+    font-size: 13px;
+    border-bottom: 1px solid var(--hairline-color);
+  }
+  div.breadcrumbs a { color: var(--breadcrumbs-link-fg); }
+
+  /* ── Messages ── */
+  .messagelist li.success { background: #e6f4ee; color: #1e5c3e; border-left: 4px solid var(--emerald); }
+  .messagelist li.warning { background: #fff8e1; color: #7a4f10; border-left: 4px solid var(--amber); }
+  .messagelist li.error   { background: #fde8e6; color: #7a1c1c; border-left: 4px solid var(--error-color); }
 </style>
 {% endblock %}

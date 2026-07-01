@@ -150,7 +150,7 @@
   }
   .btn-view:hover { background: var(--border); }
   .btn-connect {
-    background: var(--rose); color: #fff;
+    background: var(--brand-dark); color: #fff;
   }
   .btn-connect:hover { background: var(--rose-dark); }
   .btn-connect:disabled { opacity: .55; cursor: not-allowed; }
@@ -176,9 +176,9 @@
     transition: all .3s ease; z-index: 9999;
     box-shadow: var(--shadow-lg); max-width: 300px;
   }
-  #toast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
-  #toast.error { background: var(--rose-dark); }
-  #toast.success { background: var(--sage); }
+  #toast.show { opacity: 100; transform: translateY(0); pointer-events: auto; }
+  #toast.error { background: var(--error); }
+  #toast.success { background: var(--success); }
 
   /* ── Terms Modal ── */
   .terms-overlay {

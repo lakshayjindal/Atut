@@ -3,233 +3,266 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Operator Bulk Entry</title>
+  <title>Bulk Entry — Operator Panel</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #f6f7f9;
-      --card: #ffffff;
-      --border: #dcdfe4;
-      --accent: #2563eb;
-      --error: #dc2626;
-      --ok: #16a34a;
-      --text: #1f2937;
-      --muted: #6b7280;
+      --brand:      #1A6B72;
+      --brand-dark: #124E54;
+      --brand-tint: #EBF6F7;
+      --amber:      #C8832A;
+      --emerald:    #2E7D5E;
+      --error:      #C0392B;
+      --bg:         #F7F9FA;
+      --surface:    #FFFFFF;
+      --border:     #E2E8EB;
+      --border-med: #C8D3D8;
+      --text-1:     #1C2B30;
+      --text-2:     #4A6370;
+      --text-3:     #8AA0AA;
     }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Inter', system-ui, sans-serif;
       background: var(--bg);
-      color: var(--text);
-    }
-
-    header {
-      background: var(--card);
-      padding: 16px 24px;
-      border-bottom: 1px solid var(--border);
+      color: var(--text-1);
+      height: 100vh;
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .be-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 20px;
+      height: 54px;
+      display: flex;
       align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
     }
-
-    header h1 {
-      font-size: 18px;
-      margin: 0;
+    .be-header-left { display: flex; align-items: center; gap: 12px; }
+    .be-logo {
+      font-size: .95rem; font-weight: 700;
+      color: var(--brand);
     }
-
-    button {
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
+    .be-title {
+      font-size: .85rem; color: var(--text-2);
+      border-left: 1px solid var(--border);
+      padding-left: 12px;
     }
+    .be-header-actions { display: flex; gap: 8px; }
 
-    button.secondary {
-      background: #e5e7eb;
-      color: #111;
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 16px; border-radius: 7px; border: none;
+      font-size: .82rem; font-weight: 600; cursor: pointer;
+      font-family: 'Inter', sans-serif; transition: all .18s;
     }
+    .btn-primary { background: var(--brand); color: #fff; }
+    .btn-primary:hover { background: var(--brand-dark); }
+    .btn-secondary { background: var(--bg); color: var(--text-2); border: 1px solid var(--border-med); }
+    .btn-secondary:hover { background: var(--border); }
 
-    main {
-      padding: 16px;
+    /* ── Field selector ── */
+    .be-fields {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px;
+      display: flex; align-items: center; gap: 16px;
+      flex-wrap: wrap; flex-shrink: 0;
     }
-
-    /* ---------- Field selector ---------- */
-    .field-selector {
-      background: var(--card);
+    .be-fields-label {
+      font-size: .72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .5px;
+      color: var(--text-3); white-space: nowrap;
+    }
+    .be-fields label {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: .8rem; color: var(--text-2); cursor: pointer;
+      padding: 4px 10px; border-radius: 20px;
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px 16px;
-      margin-bottom: 16px;
+      background: var(--bg);
+      transition: all .15s;
+    }
+    .be-fields label:has(input:checked) {
+      background: var(--brand-tint);
+      border-color: var(--brand);
+      color: var(--brand);
+    }
+    .be-fields input[type=checkbox] { accent-color: var(--brand); }
+
+    /* ── Table area ── */
+    .be-table-wrap {
+      flex: 1; overflow: auto; padding: 16px 20px;
     }
 
-    .field-selector h3 {
-      margin: 0 0 8px;
-      font-size: 14px;
-      color: var(--muted);
-    }
-
-    .field-selector label {
-      display: inline-block;
-      margin-right: 16px;
-      font-size: 13px;
-    }
-
-    /* ---------- Table ---------- */
     table {
-      width: 100%;
       border-collapse: collapse;
-      background: var(--card);
+      background: var(--surface);
       border-radius: 10px;
       overflow: hidden;
-      min-width: 1200px;
+      min-width: 900px;
+      width: 100%;
+      box-shadow: 0 1px 6px rgba(0,0,0,.06);
     }
 
-    thead {
-      background: #f1f5f9;
+    thead tr { background: var(--brand); }
+    thead th {
+      padding: 10px 12px;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      text-align: left;
+      white-space: nowrap;
     }
 
-    th, td {
-      border: 1px solid var(--border);
-      padding: 6px;
-      font-size: 13px;
-    }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr.valid   { background: #f0fdf4; }
+    tbody tr.invalid { background: #fef2f2; }
+
+    td { padding: 5px 6px; vertical-align: middle; }
 
     td input, td select, td textarea {
-      width: 100%;
-      padding: 6px;
-      border-radius: 4px;
-      border: 1px solid transparent;
-      font-size: 13px;
+      width: 100%; padding: 6px 8px;
+      border: 1.5px solid transparent;
+      border-radius: 5px; font-size: 13px;
       background: transparent;
+      font-family: 'Inter', sans-serif;
+      color: var(--text-1);
+      transition: border-color .15s, background .15s;
     }
-
-    td textarea {
-      resize: vertical;
-      min-height: 32px;
-    }
-
+    td textarea { resize: vertical; min-height: 32px; }
     td input:focus, td select:focus, td textarea:focus {
       outline: none;
-      border-color: var(--accent);
-      background: #fff;
+      border-color: var(--brand);
+      background: var(--surface);
     }
-
-    tr.invalid td { background: #fef2f2; }
-    tr.valid td { background: #f0fdf4; }
-
-    .status {
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .status.ok { color: var(--ok); }
-    .status.err { color: var(--error); }
 
     tfoot td {
       padding: 10px;
       text-align: center;
-      background: #f8fafc;
+      background: var(--bg);
       cursor: pointer;
-      color: var(--accent);
+      color: var(--brand);
       font-weight: 600;
+      font-size: .82rem;
+      border-top: 1px solid var(--border);
     }
+    tfoot td:hover { background: var(--brand-tint); }
+
+    .status { font-size: 11px; font-weight: 600; white-space: nowrap; }
+    .status.ok  { color: var(--emerald); }
+    .status.err { color: var(--error); }
+
+    /* ── Toast ── */
+    #beToast {
+      position: fixed; bottom: 20px; right: 20px;
+      background: var(--text-1); color: #fff;
+      padding: 11px 18px; border-radius: 10px;
+      font-size: .82rem; font-weight: 500;
+      opacity: 0; pointer-events: none;
+      transform: translateY(6px);
+      transition: all .25s; z-index: 9999;
+      box-shadow: 0 4px 16px rgba(0,0,0,.15);
+    }
+    #beToast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    #beToast.ok  { background: var(--emerald); }
+    #beToast.err { background: var(--error); }
   </style>
 </head>
 <body>
 
-<header>
-  <h1>Bulk Data Entry — Operator Panel</h1>
-  <div>
-    <button class="secondary" onclick="addRow()">+ Add Row</button>
-    <button onclick="submitAll()">Save All (Ctrl + Enter)</button>
+<div id="beToast"></div>
+
+<!-- Header -->
+<header class="be-header">
+  <div class="be-header-left">
+    <span class="be-logo">Vivah Sutra®</span>
+    <span class="be-title">Operator Bulk Entry</span>
+  </div>
+  <div class="be-header-actions">
+    <button class="btn btn-secondary" onclick="addRow()">+ Add Row</button>
+    <button class="btn btn-primary" onclick="submitAll()">Save All <small style="opacity:.7;font-weight:400;">(Ctrl+Enter)</small></button>
   </div>
 </header>
 
-<main>
+<!-- Field selector -->
+<div class="be-fields">
+  <span class="be-fields-label">Fields</span>
+  {% for field in operator_fields %}
+    <label>
+      <input type="checkbox" data-field="{{ field.key }}"
+        {% if field.required %}checked disabled{% else %}checked{% endif %}>
+      {{ field.label }}{% if field.required %} <span style="color:var(--brand);font-size:.7rem;">*</span>{% endif %}
+    </label>
+  {% endfor %}
+</div>
 
-  <!-- FIELD SELECTOR -->
-  <div class="field-selector">
-    <h3>Fields to Enter</h3>
-    {% for field in operator_fields %}
-      <label>
-        <input
-          type="checkbox"
-          data-field="{{ field.key }}"
-          {% if field.required %}checked disabled{% else %}checked{% endif %}
-        >
-        {{ field.label }}
-        {% if field.required %}<small>(required)</small>{% endif %}
-      </label>
-    {% endfor %}
-  </div>
-
-  <!-- TABLE -->
+<!-- Table -->
+<div class="be-table-wrap">
   <table>
-    <thead>
-      <tr id="tableHead"></tr>
-    </thead>
+    <thead><tr id="tableHead"></tr></thead>
     <tbody id="tableBody"></tbody>
     <tfoot>
-      <tr>
-        <td id="addRowCell" colspan="1" onclick="addRow()">+ Add New Person</td>
-      </tr>
+      <tr><td id="addRowCell" onclick="addRow()">+ Add New Person</td></tr>
     </tfoot>
   </table>
-
-</main>
+</div>
 
 {{ operator_fields|json_script:"operator-fields-data" }}
 <script>
+  const FIELD_CONFIG = JSON.parse(document.getElementById("operator-fields-data").textContent);
 
-  const FIELD_CONFIG = JSON.parse(
-  document.getElementById("operator-fields-data").textContent
-);
-
+  function showToast(msg, type = 'ok') {
+    const t = document.getElementById('beToast');
+    t.textContent = msg;
+    t.className = type;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
 
   function activeFields() {
-    return FIELD_CONFIG.filter(f =>
-      document.querySelector(`[data-field="${f.key}"]`)?.checked
-    );
+    return FIELD_CONFIG.filter(f => document.querySelector(`[data-field="${f.key}"]`)?.checked);
   }
 
   function renderHead() {
     const head = document.getElementById("tableHead");
     head.innerHTML = "";
-
     activeFields().forEach(f => {
       const th = document.createElement("th");
-      th.textContent = f.label;
+      th.textContent = f.label + (f.required ? ' *' : '');
       head.appendChild(th);
     });
-
     const st = document.createElement("th");
     st.textContent = "Status";
     head.appendChild(st);
-
     document.getElementById("addRowCell").colSpan = activeFields().length + 1;
   }
 
   function createInput(field) {
     if (field.type === "select") {
       const s = document.createElement("select");
+      const blank = document.createElement("option");
+      blank.value = ""; blank.textContent = "—";
+      s.appendChild(blank);
       (field.choices || []).forEach(c => {
         const o = document.createElement("option");
-        o.value = c;
-        o.textContent = c || "--";
+        o.value = c; o.textContent = c;
         s.appendChild(o);
       });
       return s;
     }
-
-    if (field.type === "textarea") {
-      return document.createElement("textarea");
-    }
-    
+    if (field.type === "textarea") return document.createElement("textarea");
     const i = document.createElement("input");
     i.type = field.type || "text";
     return i;
@@ -238,21 +271,17 @@
   function addRow(copyFrom = null) {
     const tr = document.createElement("tr");
     const fields = activeFields();
-
     fields.forEach((f, i) => {
       const td = document.createElement("td");
       const el = createInput(f);
-
       if (copyFrom) el.value = copyFrom[i]?.value || "";
       el.addEventListener("keydown", e => handleKeys(e, tr));
       td.appendChild(el);
       tr.appendChild(td);
     });
-
     const status = document.createElement("td");
     status.className = "status";
     tr.appendChild(status);
-
     document.getElementById("tableBody").appendChild(tr);
     tr.querySelector("input,select,textarea")?.focus();
   }
@@ -260,64 +289,51 @@
   function handleKeys(e, tr) {
     const inputs = Array.from(tr.querySelectorAll("input,select,textarea"));
     const idx = inputs.indexOf(e.target);
-
     if (e.key === "Enter") {
       e.preventDefault();
       if (e.ctrlKey) submitAll();
       else if (inputs[idx + 1]) inputs[idx + 1].focus();
       else addRow(inputs);
     }
-
-    if (e.ctrlKey && e.key === "d") {
-      e.preventDefault();
-      addRow(inputs);
-    }
+    if (e.ctrlKey && e.key === "d") { e.preventDefault(); addRow(inputs); }
   }
 
   function submitAll() {
     const rows = Array.from(document.querySelectorAll("#tableBody tr"));
     const fields = activeFields();
-    const payload = [];
-
-    rows.forEach((tr, rowIdx) => {
+    const payload = rows.map(tr => {
       const data = {};
       tr.querySelectorAll("input,select,textarea").forEach((el, i) => {
         data[fields[i].key] = el.value;
       });
-      payload.push(data);
+      return data;
     });
 
     fetch("{% url 'operator-bulk-create' %}", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": "{{ csrf_token }}"
-      },
+      headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
       body: JSON.stringify({ entries: payload })
     })
     .then(r => r.json())
-    .then(handleSaveResponse);
+    .then(data => {
+      const rows = Array.from(document.querySelectorAll("#tableBody tr"));
+      data.created.forEach(r => rows[r.row]?.remove());
+      data.errors.forEach(r => {
+        const tr = rows[r.row];
+        if (!tr) return;
+        tr.classList.add("invalid");
+        const s = tr.querySelector(".status");
+        s.textContent = r.error;
+        s.className = "status err";
+      });
+      if (data.success > 0) showToast(`${data.success} saved successfully`, 'ok');
+      if (data.failed > 0) showToast(`${data.failed} failed — check rows`, 'err');
+      if (!document.querySelector("#tableBody tr")) addRow();
+    })
+    .catch(() => showToast("Network error", 'err'));
   }
 
-  function handleSaveResponse(data) {
-    const rows = Array.from(document.querySelectorAll("#tableBody tr"));
-
-    data.created.forEach(r => {
-      rows[r.row]?.remove();
-    });
-
-    data.errors.forEach(r => {
-      const tr = rows[r.row];
-      if (!tr) return;
-      tr.classList.add("invalid");
-      tr.querySelector(".status").textContent = r.error;
-      tr.querySelector(".status").className = "status err";
-    });
-
-    if (!document.querySelector("#tableBody tr")) addRow();
-  }
-
-  document.querySelectorAll(".field-selector input").forEach(cb => {
+  document.querySelectorAll(".be-fields input[type=checkbox]").forEach(cb => {
     cb.addEventListener("change", () => {
       renderHead();
       document.getElementById("tableBody").innerHTML = "";
@@ -325,9 +341,12 @@
     });
   });
 
+  document.addEventListener("keydown", e => {
+    if (e.ctrlKey && e.key === "Enter") submitAll();
+  });
+
   renderHead();
   addRow();
 </script>
-
 </body>
 </html>

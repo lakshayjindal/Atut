@@ -69,15 +69,18 @@ ASGI_APPLICATION = "main.asgi.application"
 
 # === DATABASE ===
 
-if os.environ.get("DJANGO_ENV", "") == "prod":
+DATABASE_URL = os.getenv("DATABASE_URL")
+if DATABASE_URL:
+    DATABASES = {"default": dj_database_url.parse(DATABASE_URL)}
+elif os.environ.get("DJANGO_ENV", "") == "prod":
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql_psycopg2",
-            "NAME": "VivahSutra",
-            "USER": "VivahSutra",
-            "PASSWORD": "VivahSutra",
-            "HOST": "localhost",
-            "PORT": "",
+            "NAME": os.getenv("DB_NAME") or os.getenv("PGDATABASE", "VivahSutra"),
+            "USER": os.getenv("DB_USER") or os.getenv("PGUSER", "VivahSutra"),
+            "PASSWORD": os.getenv("DB_PASSWORD") or os.getenv("PGPASSWORD", "VivahSutra"),
+            "HOST": os.getenv("DB_HOST") or os.getenv("PGHOST", "localhost"),
+            "PORT": os.getenv("DB_PORT") or os.getenv("PGPORT", "5432"),
         }
     }
 else:
@@ -90,11 +93,22 @@ else:
 
 
 # === CHANNELS ===
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
+REDIS_URL = os.getenv("REDIS_URL")
+if REDIS_URL:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [REDIS_URL],
+            },
+        },
     }
-}
+else:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels.layers.InMemoryChannelLayer"
+        }
+    }
 
 # === PASSWORD VALIDATION ===
 AUTH_PASSWORD_VALIDATORS = [
@@ -125,16 +139,15 @@ AUTH_USER_MODEL = 'user.User'
 LOGIN_URL = "/auth/"
 
 # === EMAIL (Gmail SMTP) ===
+# All email settings are read from environment variables.
+# Set EMAIL_HOST_USER and EMAIL_HOST_PASSWORD in your .env or Railway dashboard.
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 465
-EMAIL_USE_SSL = True
-EMAIL_HOST_USER = "VivahSutramatrimony@gmail.com"
-EMAIL_HOST_PASSWORD = "htynyxqhcfpzapvt"
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-
-# BREVO_API_KEY = os.environ.get('BREVO_API_KEY')
-# RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "465"))
+EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "True") == "True"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "VivahSutramatrimony@gmail.com")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
 
 # === SECURITY / CSRF ===
 CSRF_TRUSTED_ORIGINS = [

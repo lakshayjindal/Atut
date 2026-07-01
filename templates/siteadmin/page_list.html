@@ -1,77 +1,51 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Pages • Admin</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      margin: 0;
-      padding: 2rem;
-      background: #f9f9f9;
-    }
-    h1 {
-      margin-bottom: 1rem;
-    }
-    .page-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    .page-table th, .page-table td {
-      padding: 12px;
-      border-bottom: 1px solid #ddd;
-    }
-    .page-table th {
-      background: #eee;
-      text-align: left;
-    }
-    .actions a {
-      margin-right: 10px;
-      text-decoration: none;
-      color: #0077cc;
-    }
-    .actions a:hover {
-      text-decoration: underline;
-    }
-    .new-page {
-      display: inline-block;
-      margin-bottom: 1rem;
-      padding: 10px 15px;
-      background: #0077cc;
-      color: white;
-      text-decoration: none;
-      border-radius: 5px;
-    }
-  </style>
-</head>
-<body>
-  <h1>📝 Manage Pages</h1>
+{% extends "admin/base_site.html" %}
+{% block content %}
 
-  <a href="{% url 'custom_page_create' %}" class="new-page">+ Create New Page</a>
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px;">
+  <div>
+    <h2 style="font-family:'Playfair Display',serif;color:#1A6B72;margin:0 0 4px;font-size:1.4rem;">Custom Pages</h2>
+    <p style="color:#4A6370;font-size:.85rem;margin:0;">Manage your site's custom content pages.</p>
+  </div>
+  <a href="{% url 'custom_page_create' %}" style="
+    background:#1A6B72;color:#fff;text-decoration:none;
+    padding:10px 20px;border-radius:8px;
+    font-size:.875rem;font-weight:600;
+    display:inline-flex;align-items:center;gap:6px;
+  ">+ New Page</a>
+</div>
 
-
-  <table class="page-table">
+<div style="background:#fff;border:1px solid #E2E8EB;border-radius:12px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.06);">
+  <table style="border-collapse:collapse;width:100%;font-size:13px;">
     <thead>
       <tr>
-        <th>Title</th>
-        <th>Slug</th>
-        <th>Actions</th>
+        <th style="background:#1A6B72;color:#fff;padding:11px 16px;text-align:left;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;">Title</th>
+        <th style="background:#1A6B72;color:#fff;padding:11px 16px;text-align:left;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;">Slug</th>
+        <th style="background:#1A6B72;color:#fff;padding:11px 16px;text-align:left;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;">Actions</th>
       </tr>
     </thead>
     <tbody>
       {% for page in pages %}
-        <tr>
-          <td>{{ page.title }}</td>
-          <td>{{ page.slug }}</td>
-          <td class="actions">
-            <a href="{% url 'custom_page_edit' pk=page.pk %}">✏️ Edit</a>
-            <a href="/{{ page.slug }}/" target="_blank">👁️ View</a>
-          </td>
-        </tr>
+      <tr style="{% cycle 'background:#F7F9FA;' 'background:#fff;' %}border-bottom:1px solid #E2E8EB;">
+        <td style="padding:11px 16px;color:#1C2B30;font-weight:500;">{{ page.title }}</td>
+        <td style="padding:11px 16px;color:#4A6370;font-family:monospace;font-size:12px;">{{ page.slug }}</td>
+        <td style="padding:11px 16px;">
+          <a href="{% url 'custom_page_edit' pk=page.pk %}" style="
+            color:#1A6B72;text-decoration:none;font-weight:500;
+            margin-right:14px;font-size:13px;
+          ">Edit</a>
+          <a href="/{{ page.slug }}/" target="_blank" style="
+            color:#4A6370;text-decoration:none;font-size:13px;
+          ">View ↗</a>
+        </td>
+      </tr>
       {% empty %}
-        <tr><td colspan="3">No pages found.</td></tr>
+      <tr>
+        <td colspan="3" style="padding:32px;text-align:center;color:#8AA0AA;font-style:italic;">
+          No pages yet. Create your first one.
+        </td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>
-</body>
-</html>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+version: "3.9"
+
+services:
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: VivahSutra
+      POSTGRES_USER: VivahSutra
+      POSTGRES_PASSWORD: VivahSutra
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U VivahSutra"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      DJANGO_ENV: prod
+      SECRET_KEY: ${SECRET_KEY:-django-insecure-change-me-in-production}
+      DEBUG: ${DEBUG:-False}
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: VivahSutra
+      DB_USER: VivahSutra
+      DB_PASSWORD: VivahSutra
+      REDIS_URL: redis://redis:6379/0
+      PORT: "8000"
+      EMAIL_HOST_USER: ${EMAIL_HOST_USER:-VivahSutramatrimony@gmail.com}
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD:-}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - media_data:/app/media
+
+volumes:
+  postgres_data:
+  media_data:

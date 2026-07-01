@@ -1,365 +1,133 @@
-# Deployment & Operations Guide
+# Vivah Sutra — Matrimony Platform
 
-**Project:** Vivah Sutra
-**Stack:** Django (ASGI) + PostgreSQL + AWS EC2
+**Stack:** Django 5.2 (ASGI) + PostgreSQL + Redis + Docker
 
----
-
-## 1. Overview
-
-This document describes:
-
-* How to run the application on a developer machine
-* How to deploy and update the application on AWS
-* How to back up application data, configuration, and resources
-
-The instructions assume familiarity with Linux, SSH, Python, and PostgreSQL.
+A modern matrimony platform built with Django Channels for real-time chat, featuring user profiles, search/filter, premium plans, and an admin dashboard.
 
 ---
 
-## 2. Running the Application on a Developer Machine
+## 🚀 One-Step Deployment
 
-### 2.1 System Requirements
+### Option 1: Railway (Recommended — 1 click)
 
-* OS: Ubuntu 20.04+ / macOS / Windows (WSL recommended)
-* Python: 3.10+
-* PostgreSQL: 14+
-* Git
-* Virtual environment support (`.venv`)
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/template)
+
+1. Fork or push this repo to your GitHub account
+2. Go to [railway.app](https://railway.app) and click **New Project → Deploy from GitHub repo**
+3. Railway auto-detects the `Dockerfile` and builds/deploys automatically
+4. Add these environment variables in the Railway dashboard:
+
+| Variable | Value |
+|---|---|
+| `SECRET_KEY` | (generate a long random string) |
+| `EMAIL_HOST_USER` | VivahSutramatrimony@gmail.com |
+| `EMAIL_HOST_PASSWORD` | (your Gmail app password) |
+
+Railway automatically provisions **PostgreSQL** and **Redis** — the app picks them up via `DATABASE_URL` and `REDIS_URL`.
+
+That's it. One step, deployed ✅
 
 ---
 
-### 2.2 Project Setup
+### Option 2: Docker Compose (Local)
 
 ```bash
-git clone https://github.com/juricerp/Vivah-Python.git
-cd Vivah-Python
+# 1. Clone the repo
+git clone https://github.com/lakshayjindal/vivah-sutra.git
+cd vivah-sutra
+
+# 2. Start everything with one command
+docker compose up -d
+
+# 3. Open http://localhost:8000
 ```
 
-Create and activate a virtual environment:
+This starts **PostgreSQL**, **Redis**, and the **Django app** in three containers. The app auto-runs migrations and collects static files on startup.
+
+To stop:
+```bash
+docker compose down
+```
+
+---
+
+### Option 3: Manual (Local Dev)
 
 ```bash
+# 1. Clone and enter the project
+git clone https://github.com/lakshayjindal/vivah-sutra.git
+cd vivah-sutra
+
+# 2. Create virtual env & install deps
 python3 -m venv .venv
-source ./.venv/bin/activate
-```
-
-Install dependencies:
-
-```bash
+source .venv/bin/activate
 pip install -r requirements.txt
-```
 
----
+# 3. Configure environment
+cp .env.example .env
+# Edit .env to taste — defaults work for SQLite local dev
 
-### 2.3 Environment Configuration
-
-Create a `.env` file in the project root:
-
-```env
-DEBUG=True
-
-DB_NAME=Vivah_db
-DB_USER=postgres
-DB_PASSWORD=postgres
-DB_HOST=localhost
-DB_PORT=5432
-```
-
----
-
-### 2.4 Database Setup
-
-Create the PostgreSQL database:
-
-```bash
-sudo -u postgres psql
-CREATE DATABASE Vivah_db;
-```
-
-Apply migrations:
-
-```bash
+# 4. Run database migrations
 python manage.py migrate
-```
 
-Create an admin user:
-
-```bash
-python manage.py createsuperuser
-```
-
----
-
-### 2.5 Start Development Server
-
-```bash
+# 5. Start the dev server
 python manage.py runserver
-```
 
-The application will be available at:
-
-```
-http://127.0.0.1:8000
+# Open http://127.0.0.1:8000
 ```
 
 ---
 
-## 3. Deployment and Updates on AWS
-
-### 3.1 Connect to AWS EC2
-
-```bash
-ssh -i <key.pem> ubuntu@ec2-13-50-211-140.eu-north-1.compute.amazonaws.com
-```
-key.pem should be requested by the devloper
----
-
-### 3.2 Application Directory
-
-The application is expected to reside at:
+## 📁 Project Structure
 
 ```
-/home/ubuntu/Vivah
-```
-
----
-
-### 3.3 Update Application Code
-
-Navigate to the project directory:
-
-```bash
-cd Vivah
-```
-
-Pull the latest changes:
-
-```bash
-git pull origin main
-```
-
-Activate the virtual environment:
-
-```bash
-source ./.venv/bin/activate
-```
-
-Install/update dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-Apply database migrations:
-
-```bash
-python manage.py migrate --noinput
-```
-
-Collect static files:
-
-```bash
-python manage.py collectstatic --noinput
-```
-
-Restart application services:
-
-```bash
-sudo systemctl daemon-reload
-sudo systemctl restart daphne
-sudo systemctl restart nginx
+├── connect/          # Real-time chat (Django Channels, WebSockets)
+├── main/             # Django project config (settings, URLs, ASGI)
+├── plans/            # Premium subscriptions & payments
+├── search/           # Profile search & filtering
+├── siteadmin/        # Custom operator/admin tools
+├── templates/        # HTML templates (admin, user, emails)
+├── user/             # User auth, profiles, dashboard
+├── Dockerfile        # Production container build
+├── docker-compose.yml # One-command local stack
+├── docker-entrypoint.sh # Automatic migration + static files + daphne
+├── railway.json      # Railway deploy config
+└── .env.example      # Environment variable template
 ```
 
 ---
 
-### 3.4 Port Binding
+## 🌐 Environment Variables
 
-The application listens on:
-
-```
-0.0.0.0:8000
-```
-
-Nginx is expected to proxy requests to the application server.
-
----
-
-## 4. Backup Procedures
-
-### 4.1 PostgreSQL Database Backup
-
-Create a database dump:
-
-```bash
-pg_dump -U <db_user> <db_name> > db_backup_$(date +%F).sql
-```
-
-Restore from backup:
-
-```bash
-psql -U <db_user> <db_name> < db_backup_YYYY-MM-DD.sql
-```
+| Variable | Required | Description |
+|---|---|---|
+| `SECRET_KEY` | Yes | Django secret key |
+| `DEBUG` | No | Set `True` for dev (default), `False` for prod |
+| `DATABASE_URL` | For prod | PostgreSQL connection string (Railway sets this) |
+| `REDIS_URL` | For chat | Redis connection string (Railway sets this) |
+| `EMAIL_HOST_USER` | For email | Gmail address for transactional emails |
+| `EMAIL_HOST_PASSWORD` | For email | Gmail app password |
+| `PORT` | No | Server port (default: 8000) |
 
 ---
 
-### 4.2 Media and Static Files Backup
+## 🔑 Key Features
 
-Backup uploaded media:
-
-```bash
-tar -czvf media_backup_$(date +%F).tar.gz media/
-```
-
-Backup static files:
-
-```bash
-tar -czvf static_backup_$(date +%F).tar.gz static/
-```
+- **Real-time messaging** via Django Channels + Redis
+- **Profile management** with photo uploads
+- **Advanced search** with filters (age, location, caste, etc.)
+- **Premium subscription plans**
+- **Admin dashboard** with bulk user import & CSV tools
+- **Email OTP verification**
+- **Responsive design** with dark mode support
 
 ---
 
-### 4.3 Configuration Backup
+## 🛠 Tech Stack
 
-Backup critical configuration files:
-
-```bash
-cp .env .env.backup
-```
-
-If applicable:
-
-```bash
-sudo cp /etc/nginx/sites-available/<project_name> nginx_<project_name>.backup
-sudo cp /etc/systemd/system/<service_name>.service service_<project_name>.backup
-```
-
----
-
-### 4.4 Optional Automation (Cron)
-
-Example of a daily database backup at 02:00 AM:
-
-```bash
-crontab -e
-```
-
-```cron
-0 2 * * * pg_dump -U <db_user> <db_name> > /backups/db_$(date +\%F).sql
-```
-
----
-
-## 4. Operational Notes
-
-* Database migrations must be applied after every schema change.
-* Static files must be recollected after frontend or asset updates.
-* Backups should be verified periodically.
-* Application services should be monitored for uptime and errors.
-
----
-
-## 5. Scope Clarification
-
-This document covers the current deployment and operational setup.
-
-Advanced features such as:
-
-* Automated recovery
-* Multi-region backups
-* Infrastructure scaling
-* Monitoring and alerting systems
-
-are not included and can be implemented separately.
-
----
-
-## 6. Support
-
-For deployment-related clarifications or enhancements, changes should be reviewed and planned before implementation.
-
----
-
-## 7. Directory Info
-
-There are many directories in this project 
-
-```
-.
-├── connect                        // Real-time communication module (chat, messaging, WebSocket consumers)
-│   ├── admin.py                   // Django admin registrations for connect app
-│   ├── apps.py                    // App configuration
-│   ├── consumers.py               // WebSocket consumers (Django Channels)
-│   ├── migrations/                // Database migrations for chat and messaging models
-│   ├── models.py                  // Chat-related database models
-│   ├── routing.py                 // WebSocket routing configuration
-│   ├── urls.py                    // HTTP URL routes for connect app
-│   └── views.py                   // HTTP views for messaging features
-│
-├── main                           // Core project configuration and entry point
-│   ├── asgi.py                    // ASGI application entry point
-│   ├── consumers.py               // Project-level WebSocket consumers
-│   ├── settings.py                // Global Django settings
-│   ├── urls.py                    // Root URL configuration
-│   ├── views.py                   // Global views (landing, redirects, etc.)
-│   ├── wsgi.py                    // WSGI entry point (if needed)
-│   └── static/                    // App-level static assets
-│       └── user/                  // User-facing CSS, images, and assets
-│
-├── manage.py                      // Django management command entry point
-│
-├── media                          // User-uploaded files (runtime data)
-│   ├── profile_images/            // Uploaded user profile images and documents
-│   └── qr_codes/                  // Generated QR codes
-│
-├── plans                          // Subscription, payment, and premium features
-│   ├── admin.py                   // Admin configuration for plans and payments
-│   ├── decorators.py              // Access control decorators (premium checks, etc.)
-│   ├── models.py                  // Plan, payment, promo code, and feature models
-│   ├── services/                  // Business logic layer (e.g., promo code handling)
-│   ├── static/                    // Static JS/CSS related to plans and admin tools
-│   ├── templatetags/              // Custom Django template tags
-│   ├── urls.py                    // Routes for plan-related pages
-│   └── views.py                   // Views handling subscriptions and payments
-│
-├── search                         // Search and filtering functionality
-│   ├── models.py                  // Search-related models (if any)
-│   ├── templatetags/              // Custom filters for query handling
-│   ├── urls.py                    // Search endpoints
-│   └── views.py                   // Search result handling
-│
-├── siteadmin                      // Custom internal admin and operator tools
-│   ├── admin.py                   // Admin registrations
-│   ├── feild_config.py            // Dynamic field configurations
-│   ├── forms.py                   // Admin/operator forms
-│   ├── models.py                  // Operator and admin-specific models
-│   ├── urls.py                    // Admin tool routes
-│   └── views.py                   // Views for bulk entry, content management, etc.
-│
-├── staticfiles                    // Collected static files (generated in production)
-│   ├── admin/                     // Django admin static assets
-│   ├── assets/                    // Shared compiled assets
-│   └── user/                      // User-facing static files
-│
-├── templates                      // HTML templates
-│   ├── admin/                     // Custom admin templates and dashboards
-│   ├── emails/                    // Email templates (OTP, notifications)
-│   ├── plans/                     // Subscription and payment pages
-│   ├── siteadmin/                 // Operator/admin interface templates
-│   └── user/                      // Public and authenticated user-facing pages
-│
-├── user                           // User accounts and profile management
-│   ├── admin.py                   // Admin configuration for user models
-│   ├── context_processors.py      // Global template context helpers
-│   ├── email_utils.py             // Email and OTP utilities
-│   ├── forms.py                   // Authentication and profile forms
-│   ├── models.py                  // Custom user and profile models
-│   ├── urls.py                    // User-related routes
-│   ├── utils.py                   // Helper utilities
-│   └── views.py                   // Authentication, profile, and dashboard views
-│
-├── requirements.txt               // Python dependencies
-├── pyproject.toml                 // Project metadata and tooling configuration
-├── railway.json                   // Deployment configuration (Railway)
-├── readme.md                     // Project documentation
-└── db.sqlite3                     // Local development database (not used in production)
-```
+- **Backend:** Django 5.2, Django Channels 4.2, Daphne
+- **Database:** PostgreSQL (prod), SQLite (dev)
+- **Cache/Realtime:** Redis + channels-redis
+- **Static Files:** WhiteNoise
+- **Containerization:** Docker, Docker Compose
+- **Cloud:** Railway (deployment)
